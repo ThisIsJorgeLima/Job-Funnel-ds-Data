@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 import time
+import psycopg2
 
 from urllib.parse import urlencode
 from selenium import webdriver
@@ -92,10 +93,134 @@ class MonsterScraper:  # (DataRetriever):
 		MONSTER_LOG.info(f'Built url: {search_url}')
 		return (search_url)
 
-	def add_to_db(self, db_conn):
-		raise NotImplementedError
+	def add_to_db(self, db_conn, result):
+		MONSTER_LOG.info('Adding result to database...')
+		"""
+			WITH j_values AS (
+				SELECT
+					%(title)s::TEXT AS title,
+					%(description)s::TEXT AS description
+			), extant AS (
+				SELECT job_id AS id FROM jobs_descriptions
+				WHERE
+					jobs_descriptions.description = j_values.description
+			),
+		"""
+		job_listings_query = """
+			WITH j_values AS (
+				SELECT
+					%(title)s::TEXT AS title,
+					%(description)s::TEXT AS description
+			)
+			INSERT INTO job_listings(title)
+			SELECT j_values.title
+			FROM j_values
+			WHERE NOT EXISTS (
+				SELECT job_id AS id FROM jobs_descriptions
+				WHERE
+					jobs_descriptions.description = j_values.description
+			)
+			RETURNING id;
+		"""
+		jobs_descriptions_query = """
+			WITH jd_values AS (
+				SELECT
+					%(job_id)s AS job_id,
+					%(description)s::TEXT AS description
+			)
+			INSERT INTO jobs_descriptions(job_id, description)
+			SELECT jd_values.job_id, jd_values.description
+			FROM jd_values
+			WHERE NOT EXISTS (
+				SELECT id FROM jobs_descriptions
+				WHERE
+					jobs_descriptions.job_id = jd_values.job_id
+					AND jobs_descriptions.description = jd_values.description
+			)
+			RETURNING id;
+		"""
+		companies_query = """
+			WITH c_values AS (
+				SELECT
+					%(name)s::TEXT AS name,
+					%(description)s::TEXT AS description,
+					%(size)s::INT AS size,
+					%(revenue)s::INT AS revenue
+			)
+			INSERT INTO companies(name, description, size, revenue)
+			SELECT
+				c_values.name,
+				c_values.description,
+				c_values.size,
+				c_values.revenue
+			FROM c_values
+			WHERE NOT EXISTS (
+				SELECT id FROM companies
+				WHERE
+					companies.name = c_values.name
+			)
+			RETURNING id;
+		"""
+		jobs_companies_query = """
+			WITH jc_values AS (
+				SELECT
+					%(job_id)s::INT AS job_id,
+					%(company_id)s::INT AS company_id
+			)
+			INSERT INTO jobs_companies(job_id, company_id)
+			SELECT
+				jc_values.job_id,
+				jc_values.company_id
+			FROM jc_values
+			WHERE NOT EXISTS (
+				SELECT id FROM jobs_companies
+				WHERE
+					jobs_companies.job_id = jc_values.job_id
+					AND jobs_companies.company_id = jc_values.company_id
+			)
+			RETURNING id;
+		"""
 
-	def get_jobs(self, db_add_function, db_conn, job_title='', job_location=''):
+		# Run order: job_listings, jobs_descriptions, companies, jobs_companies
+		curr = db_conn.cursor()
+		curr.execute(
+			job_listings_query,
+			{
+				'title': result['title'],
+				'description': result['description'],
+			}
+		)
+		job_id = curr.fetchone()[0]
+		curr.execute(
+			jobs_descriptions_query,
+			{
+				'job_id': job_id,
+				'description': result['description'],
+			}
+		)
+		curr.execute(
+			companies_query,
+			{
+				'name': result['company_name'],
+				'description': None,
+				'revenue': None,
+				'size': None,
+			}
+		)
+		company_id = curr.fetchone()[0]
+		curr.execute(
+			jobs_companies_query,
+			{
+				'job_id': job_id,
+				'company_id': company_id
+			}
+		)
+		curr.close()
+		MONSTER_LOG.info('Committing changes...')
+		db_conn.commit()
+		MONSTER_LOG.info('Added result to database.')
+
+	def get_jobs(self, db_conn, job_title='', job_location=''):
 		url = self.build_url(job_title=job_title, job_location=job_location)
 		MONSTER_LOG.info(f'Getting url: {url}')
 		self.driver.get(url)
@@ -141,11 +266,12 @@ class MonsterScraper:  # (DataRetriever):
 		result_elements_count = len(result_elements)
 		MONSTER_LOG.info(f'Got {result_elements_count} elements.')
 
-		results = []
+		# results = []
 
 		for index, result_element in enumerate(result_elements):
 			MONSTER_LOG.info(f'Getting info for element {index + 1} of {result_elements_count}')
-			results.append(self.get_info(result_element))
+			result = self.get_info(result_element)
+			self.add_to_db(db_conn, result)
 
 		# MONSTER_LOG.info(f'Getting details for jobs...')
 		# for result in results:
@@ -158,7 +284,7 @@ class MonsterScraper:  # (DataRetriever):
 		# 			MONSTER_LOG.info(f'Exception getting details [try {tries + 1} of {max_tries}]: {e}')
 
 		MONSTER_LOG.info(f'Done getting jobs.')
-		return (results)
+		# return (results)
 
 	def get_info(self, result_element, max_tries=5):
 		for tries in range(max_tries):
@@ -242,15 +368,16 @@ class MonsterScraper:  # (DataRetriever):
 
 
 a = MonsterScraper()
-r = a.get_jobs(None, None, job_title='Data Analyst')
-# a.driver.close()
-print(r[-1])
+with psycopg2.connect(database='jobs') as psql_conn:
+	a.get_jobs(psql_conn, job_title='Data Analyst')
+a.driver.close()
+# print(r[-1])
 
-sizes = []
-for r2 in r:
-	for k, v in r2.items():
-		sizes.append(sys.getsizeof(k))
-		sizes.append(sys.getsizeof(v))
-print(sizes)
-print(sum(sizes) / len(r))
-print(sum(sizes))
+# sizes = []
+# for r2 in r:
+# 	for k, v in r2.items():
+# 		sizes.append(sys.getsizeof(k))
+# 		sizes.append(sys.getsizeof(v))
+# print(sizes)
+# print(sum(sizes) / len(r))
+# print(sum(sizes))
