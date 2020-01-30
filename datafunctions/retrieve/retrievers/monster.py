@@ -73,7 +73,7 @@ class MonsterScraper:  # (DataRetriever):
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
 			options = Options()
-			# options.headless = True
+			options.headless = True
 			driver = webdriver.Firefox(
 				executable_path=GECKOPATH,
 				options=options
@@ -245,10 +245,15 @@ class MonsterScraper:  # (DataRetriever):
 
 				tries = 0
 				page_count += 1
+
+				wait_time = 0
+				MONSTER_LOG.info(f'Loaded jobs, waiting {wait_time} seconds...')
+				time.sleep(wait_time)
 				# load_button.click()
 			except Exception as e:
 				tries += 1
 				MONSTER_LOG.info(f'Exception {type(e)} while loading more jobs: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
 
 		# MONSTER_LOG.info('Waiting 10 seconds...')
 		# time.sleep(10)
@@ -285,26 +290,31 @@ class MonsterScraper:  # (DataRetriever):
 			try:
 				MONSTER_LOG.info(f'Getting info for {result_element} [try {tries + 1} of {max_tries}]')
 				result = {}
+				MONSTER_LOG.info('Getting company name...')
 				result['company_name'] = str(
-						result_element.find_element_by_xpath(
+					result_element.find_element_by_xpath(
 						'.//*[@class="company"]/*[@class="name"]'
 					).get_attribute('innerHTML')
 				).strip()
+				MONSTER_LOG.info('Getting location name...')
 				result['location'] = str(
 					result_element.find_element_by_xpath(
 						'.//*[@class="location"]/*[@class="name"]'
 					).get_attribute('innerHTML')
 				).strip()
+				MONSTER_LOG.info('Getting job title...')
 				result['title'] = str(
 					result_element.find_element_by_xpath(
 						'.//*[@class="title"]/a'
 					).get_attribute('innerHTML')
 				).strip()
+				MONSTER_LOG.info('Getting job link...')
 				result['inner_link'] = str(
 					result_element.find_element_by_xpath(
 						'.//*[@class="title"]/a'
 					).get_attribute('href')
 				).strip()
+				MONSTER_LOG.info('Getting date posted...')
 				result['posted'] = str(
 					result_element.find_element_by_xpath(
 						'.//*[@class="meta flex-col"]/time'
@@ -317,8 +327,8 @@ class MonsterScraper:  # (DataRetriever):
 				break
 
 			except Exception as e:
-				MONSTER_LOG.info(f'Exception getting info: {e}')
-				MONSTER_LOG.info(f'Element HTML:\n{result_element.get_attribute("innerHTML")}')
+				MONSTER_LOG.info(f'Exception getting info for {result_element}: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
 				wait_time = 1
 				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
@@ -341,7 +351,7 @@ class MonsterScraper:  # (DataRetriever):
 		)
 
 		MONSTER_LOG.info('Getting element text...')
-		result['description'] = str(result_element.text).strip()
+		result['description'] = str(result_element.get_attribute('innerText')).strip()
 
 		MONSTER_LOG.info('Done getting details for element.')
 		return (result)
@@ -362,7 +372,7 @@ class MonsterScraper:  # (DataRetriever):
 		)
 
 		MONSTER_LOG.info('Getting element text...')
-		result['description'] = result_element.text
+		result['description'] = str(result_element.get_attribute('innerText')).strip()
 
 		MONSTER_LOG.info('Done getting details for element.')
 		return (result)
@@ -373,7 +383,7 @@ class MonsterScraper:  # (DataRetriever):
 
 a = MonsterScraper()
 with psycopg2.connect(database='jobs') as psql_conn:
-	a.get_jobs(psql_conn, job_title='Data Analyst')
+	a.get_jobs(psql_conn, job_title='')
 a.driver.close()
 # print(r[-1])
 
