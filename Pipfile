@@ -13,6 +13,7 @@ selenium = "*"
 numpy = "*"
 pandas = "*"
 psycopg2 = "*"
+beautifulsoup4 = "*"
 
 [requires]
 python_version = "3.7"
