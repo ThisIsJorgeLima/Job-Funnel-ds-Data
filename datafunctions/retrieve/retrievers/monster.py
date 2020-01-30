@@ -95,126 +95,120 @@ class MonsterScraper:  # (DataRetriever):
 
 	def add_to_db(self, db_conn, result):
 		MONSTER_LOG.info('Adding result to database...')
+		job_exists_query = """
+			WITH listings AS (
+				SELECT id
+				FROM job_listings
+				WHERE title = %(title)s
+			), descriptions AS (
+				SELECT job_id
+				FROM jobs_descriptions
+				WHERE description = %(description)s
+			)
+			SELECT listings.id
+			FROM listings
+			INNER JOIN descriptions
+			ON listings.id = descriptions.job_id
+			LIMIT 1;
 		"""
-			WITH j_values AS (
-				SELECT
-					%(title)s::TEXT AS title,
-					%(description)s::TEXT AS description
-			), extant AS (
-				SELECT job_id AS id FROM jobs_descriptions
-				WHERE
-					jobs_descriptions.description = j_values.description
-			),
-		"""
+
 		job_listings_query = """
-			WITH j_values AS (
-				SELECT
-					%(title)s::TEXT AS title,
-					%(description)s::TEXT AS description
-			)
 			INSERT INTO job_listings(title)
-			SELECT j_values.title
-			FROM j_values
-			WHERE NOT EXISTS (
-				SELECT job_id AS id FROM jobs_descriptions
-				WHERE
-					jobs_descriptions.description = j_values.description
-			)
+			VALUES (%(title)s)
 			RETURNING id;
 		"""
+
 		jobs_descriptions_query = """
-			WITH jd_values AS (
-				SELECT
-					%(job_id)s AS job_id,
-					%(description)s::TEXT AS description
-			)
 			INSERT INTO jobs_descriptions(job_id, description)
-			SELECT jd_values.job_id, jd_values.description
-			FROM jd_values
-			WHERE NOT EXISTS (
-				SELECT id FROM jobs_descriptions
-				WHERE
-					jobs_descriptions.job_id = jd_values.job_id
-					AND jobs_descriptions.description = jd_values.description
-			)
-			RETURNING id;
+			VALUES (%(job_id)s, %(description)s);
 		"""
+
+		company_exists_query = """
+			SELECT id
+			FROM companies
+			WHERE name = %(name)s
+			LIMIT 1;
+		"""
+
 		companies_query = """
-			WITH c_values AS (
-				SELECT
-					%(name)s::TEXT AS name,
-					%(description)s::TEXT AS description,
-					%(size)s::INT AS size,
-					%(revenue)s::INT AS revenue
-			)
-			INSERT INTO companies(name, description, size, revenue)
-			SELECT
-				c_values.name,
-				c_values.description,
-				c_values.size,
-				c_values.revenue
-			FROM c_values
-			WHERE NOT EXISTS (
-				SELECT id FROM companies
-				WHERE
-					companies.name = c_values.name
-			)
+			INSERT INTO companies(name)
+			VALUES (%(name)s)
 			RETURNING id;
 		"""
+
 		jobs_companies_query = """
-			WITH jc_values AS (
-				SELECT
-					%(job_id)s::INT AS job_id,
-					%(company_id)s::INT AS company_id
-			)
 			INSERT INTO jobs_companies(job_id, company_id)
-			SELECT
-				jc_values.job_id,
-				jc_values.company_id
-			FROM jc_values
-			WHERE NOT EXISTS (
-				SELECT id FROM jobs_companies
-				WHERE
-					jobs_companies.job_id = jc_values.job_id
-					AND jobs_companies.company_id = jc_values.company_id
-			)
-			RETURNING id;
+			VALUES (%(job_id)s, %(company_id)s);
 		"""
 
 		# Run order: job_listings, jobs_descriptions, companies, jobs_companies
 		curr = db_conn.cursor()
+
+		# Get the company id if it exists
 		curr.execute(
-			job_listings_query,
+			company_exists_query,
+			{
+				'name': result['company_name'],
+			}
+		)
+		qr = curr.fetchone()
+		if qr is not None:
+			MONSTER_LOG.info(f'Company {result["company_name"]} already exists in DB.')
+			company_id = qr[0]
+		else:
+			# Otherwise, insert the company and get the id
+			MONSTER_LOG.info(f'Company {result["company_name"]} not yet in DB, adding...')
+			curr.execute(
+				companies_query,
+				{
+					'name': result['company_name'],
+				}
+			)
+			company_id = curr.fetchone()[0]
+
+		# Get the job listing id if it exists
+		curr.execute(
+			job_exists_query,
 			{
 				'title': result['title'],
 				'description': result['description'],
 			}
 		)
-		job_id = curr.fetchone()[0]
-		curr.execute(
-			jobs_descriptions_query,
-			{
-				'job_id': job_id,
-				'description': result['description'],
-			}
-		)
-		curr.execute(
-			companies_query,
-			{
-				'name': result['company_name'],
-				'description': None,
-				'revenue': None,
-				'size': None,
-			}
-		)
-		company_id = curr.fetchone()[0]
-		curr.execute(
-			jobs_companies_query,
-			{
-				'job_id': job_id,
-				'company_id': company_id
-			}
-		)
+		qr = curr.fetchone()
+		if qr is not None:
+			MONSTER_LOG.info(f'Job listing for {result["title"]} already exists in DB.')
+			job_id = qr[0]
+		else:
+			# Otherwise, insert the job listing and get the id
+			MONSTER_LOG.info(f'Job listing for {result["title"]} not yet in DB, adding...')
+			curr.execute(
+				job_listings_query,
+				{
+					'title': result['title'],
+				}
+			)
+			job_id = curr.fetchone()[0]
+
+			# Also add the relation to companies
+			MONSTER_LOG.info(f'Adding relation job_id {job_id} to company_id {company_id}...')
+			curr.execute(
+				jobs_companies_query,
+				{
+					'job_id': job_id,
+					'company_id': company_id,
+				}
+			)
+
+			# And the description
+			MONSTER_LOG.info('Saving description...')
+			curr.execute(
+				jobs_descriptions_query,
+				{
+					'job_id': job_id,
+					'description': result['description'],
+				}
+			)
+
 		curr.close()
 		MONSTER_LOG.info('Committing changes...')
 		db_conn.commit()
@@ -291,21 +285,31 @@ class MonsterScraper:  # (DataRetriever):
 			try:
 				MONSTER_LOG.info(f'Getting info for {result_element} [try {tries + 1} of {max_tries}]')
 				result = {}
-				result['company_name'] = result_element.find_element_by_xpath(
-					'.//*[@class="company"]/*[@class="name"]'
-				).get_attribute('innerHTML')
-				result['location'] = result_element.find_element_by_xpath(
-					'.//*[@class="location"]/*[@class="name"]'
-				).get_attribute('innerHTML')
-				result['title'] = result_element.find_element_by_xpath(
-					'.//*[@class="title"]/a'
-				).get_attribute('innerHTML')
-				result['inner_link'] = result_element.find_element_by_xpath(
-					'.//*[@class="title"]/a'
-				).get_attribute('href')
-				result['posted'] = result_element.find_element_by_xpath(
-					'.//*[@class="meta flex-col"]/time'
-				).get_attribute('innerHTML')
+				result['company_name'] = str(
+						result_element.find_element_by_xpath(
+						'.//*[@class="company"]/*[@class="name"]'
+					).get_attribute('innerHTML')
+				).strip()
+				result['location'] = str(
+					result_element.find_element_by_xpath(
+						'.//*[@class="location"]/*[@class="name"]'
+					).get_attribute('innerHTML')
+				).strip()
+				result['title'] = str(
+					result_element.find_element_by_xpath(
+						'.//*[@class="title"]/a'
+					).get_attribute('innerHTML')
+				).strip()
+				result['inner_link'] = str(
+					result_element.find_element_by_xpath(
+						'.//*[@class="title"]/a'
+					).get_attribute('href')
+				).strip()
+				result['posted'] = str(
+					result_element.find_element_by_xpath(
+						'.//*[@class="meta flex-col"]/time'
+					).get_attribute('innerHTML')
+				).strip()
 
 				MONSTER_LOG.info(f'Got info: {result}')
 
@@ -337,7 +341,7 @@ class MonsterScraper:  # (DataRetriever):
 		)
 
 		MONSTER_LOG.info('Getting element text...')
-		result['description'] = result_element.text
+		result['description'] = str(result_element.text).strip()
 
 		MONSTER_LOG.info('Done getting details for element.')
 		return (result)
