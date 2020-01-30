@@ -5,6 +5,7 @@ import sys
 import logging
 import time
 import psycopg2
+import bs4
 
 from urllib.parse import urlencode
 from selenium import webdriver
@@ -113,8 +114,8 @@ class MonsterScraper:  # (DataRetriever):
 		"""
 
 		job_listings_query = """
-			INSERT INTO job_listings(title)
-			VALUES (%(title)s)
+			INSERT INTO job_listings(title, post_date_utc)
+			VALUES (%(title)s, to_timestamp(%(post_date_utc)s))
 			RETURNING id;
 		"""
 
@@ -185,6 +186,7 @@ class MonsterScraper:  # (DataRetriever):
 				job_listings_query,
 				{
 					'title': result['title'],
+					'post_date_utc': result['timestamp'],
 				}
 			)
 			job_id = curr.fetchone()[0]
@@ -289,37 +291,57 @@ class MonsterScraper:  # (DataRetriever):
 		for tries in range(max_tries):
 			try:
 				MONSTER_LOG.info(f'Getting info for {result_element} [try {tries + 1} of {max_tries}]')
+				MONSTER_LOG.info('Converting to soup...')
+				soup = bs4.BeautifulSoup(result_element.get_attribute('outerHTML'))
 				result = {}
 				MONSTER_LOG.info('Getting company name...')
+				# result['company_name'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="company"]/*[@class="name"]'
+				# 	).get_attribute('innerHTML')
+				# ).strip()
 				result['company_name'] = str(
-					result_element.find_element_by_xpath(
-						'.//*[@class="company"]/*[@class="name"]'
-					).get_attribute('innerHTML')
-				).strip()
+					soup.select_one('.company > .name').get_text().strip()
+				)
 				MONSTER_LOG.info('Getting location name...')
+				# result['location'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="location"]/*[@class="name"]'
+				# 	).get_attribute('innerHTML')
+				# ).strip()
 				result['location'] = str(
-					result_element.find_element_by_xpath(
-						'.//*[@class="location"]/*[@class="name"]'
-					).get_attribute('innerHTML')
-				).strip()
+					soup.select_one('.location > .name').get_text().strip()
+				)
 				MONSTER_LOG.info('Getting job title...')
+				# result['title'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="title"]/a'
+				# 	).get_attribute('innerHTML')
+				# ).strip()
 				result['title'] = str(
-					result_element.find_element_by_xpath(
-						'.//*[@class="title"]/a'
-					).get_attribute('innerHTML')
-				).strip()
+					soup.select_one('.title > a').get_text().strip()
+				)
 				MONSTER_LOG.info('Getting job link...')
+				# result['inner_link'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="title"]/a'
+				# 	).get_attribute('href')
+				# ).strip()
 				result['inner_link'] = str(
-					result_element.find_element_by_xpath(
-						'.//*[@class="title"]/a'
-					).get_attribute('href')
-				).strip()
-				MONSTER_LOG.info('Getting date posted...')
-				result['posted'] = str(
-					result_element.find_element_by_xpath(
-						'.//*[@class="meta flex-col"]/time'
-					).get_attribute('innerHTML')
-				).strip()
+					soup.select_one('.title > a')['href'].strip()
+				)
+
+				# MONSTER_LOG.info('Getting date posted...')
+				# result['posted'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="meta flex-col"]/time'
+				# 	).get_attribute('innerHTML')
+				# ).strip()
+
+				# Monster doesn't provide a real post time
+				# So instead we'll just put in right now
+				# This will be at most 48 hours late, but usually closer to accurate
+				result['timestamp'] = int(time.time())
 
 				MONSTER_LOG.info(f'Got info: {result}')
 
@@ -332,6 +354,9 @@ class MonsterScraper:  # (DataRetriever):
 				wait_time = 1
 				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
+
+		else:
+			raise Exception('Unable to get info after 5 tries.')
 
 		return (result)
 
