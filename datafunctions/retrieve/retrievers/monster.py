@@ -257,6 +257,7 @@ class MonsterScraper:  # (DataRetriever):
 				'name': result['company_name'],
 			}
 		)
+		job_id = None
 		qr2 = curr.fetchone()
 		if qr is not None:
 			MONSTER_LOG.info(f'Job listing for {result["title"]} already exists in DB.')
@@ -264,7 +265,7 @@ class MonsterScraper:  # (DataRetriever):
 		if qr2 is not None:
 			MONSTER_LOG.info(f'Job listing for {result["title"]} at company {result["company_name"]} already exists in DB.')
 			job_id = qr2[0]
-		else:
+		if job_id is None:
 			# Otherwise, insert the job listing and get the id
 			MONSTER_LOG.info(f'Job listing for {result["title"]} not yet in DB, adding...')
 			curr.execute(
