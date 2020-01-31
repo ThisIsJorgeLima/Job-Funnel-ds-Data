@@ -492,7 +492,8 @@ class MonsterScraper:  # (DataRetriever):
 
 a = MonsterScraper()
 with psycopg2.connect(database='jobs') as psql_conn:
-	a.get_jobs(psql_conn, job_title='')
+	for job in ['', 'Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']:
+		a.get_jobs(psql_conn, job_title=job)
 a.driver.close()
 # print(r[-1])
 
