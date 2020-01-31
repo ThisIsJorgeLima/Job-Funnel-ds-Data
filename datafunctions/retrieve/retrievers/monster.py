@@ -142,6 +142,26 @@ class MonsterScraper:  # (DataRetriever):
 			VALUES (%(job_id)s, %(company_id)s);
 		"""
 
+		location_exists_query = """
+			SELECT id
+			FROM locations
+			WHERE city = %(city)s
+				AND state_province = %(state_province)s
+				AND country = %(country)s
+			LIMIT 1;
+		"""
+
+		locations_query = """
+			INSERT INTO locations(city, state_province, country)
+			VALUES (%(city)s, %(state_province)s, %(country)s)
+			RETURNING id;
+		"""
+
+		jobs_locations_query = """
+			INSERT INTO jobs_locations(job_id, location_id)
+			VALUES (%(job_id)s, %(location_id)s);
+		"""
+
 		# Run order: job_listings, jobs_descriptions, companies, jobs_companies
 		curr = db_conn.cursor()
 
@@ -166,6 +186,40 @@ class MonsterScraper:  # (DataRetriever):
 				}
 			)
 			company_id = curr.fetchone()[0]
+
+		# Get the location id if it exists
+		curr.execute(
+			location_exists_query,
+			{
+				'city': result['city'],
+				'state_province': result['state_province'],
+				'country': result['country'],
+			}
+		)
+		MONSTER_LOG.info(curr.mogrify(
+			location_exists_query,
+			{
+				'city': result['city'],
+				'state_province': result['state_province'],
+				'country': result['country'],
+			}
+		))
+		qr = curr.fetchone()
+		if qr is not None:
+			MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} already exists in DB.')
+			location_id = qr[0]
+		else:
+			# Otherwise, insert the location and get the id
+			MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} not yet in DB, adding...')
+			curr.execute(
+				locations_query,
+				{
+					'city': result['city'],
+					'state_province': result['state_province'],
+					'country': result['country'],
+				}
+			)
+			location_id = curr.fetchone()[0]
 
 		# Get the job listing id if it exists
 		curr.execute(
@@ -198,6 +252,16 @@ class MonsterScraper:  # (DataRetriever):
 				{
 					'job_id': job_id,
 					'company_id': company_id,
+				}
+			)
+
+			# Also add the relation to locations
+			MONSTER_LOG.info(f'Adding relation job_id {job_id} to location_id {location_id}...')
+			curr.execute(
+				jobs_locations_query,
+				{
+					'job_id': job_id,
+					'location_id': location_id,
 				}
 			)
 
@@ -291,8 +355,10 @@ class MonsterScraper:  # (DataRetriever):
 		for tries in range(max_tries):
 			try:
 				MONSTER_LOG.info(f'Getting info for {result_element} [try {tries + 1} of {max_tries}]')
+				MONSTER_LOG.info('Getting outerHTML...')
+				outerhtml = bs4.BeautifulSoup(result_element.get_attribute('outerHTML'))
 				MONSTER_LOG.info('Converting to soup...')
-				soup = bs4.BeautifulSoup(result_element.get_attribute('outerHTML'))
+				soup = outerhtml
 				result = {}
 				MONSTER_LOG.info('Getting company name...')
 				# result['company_name'] = str(
@@ -312,6 +378,22 @@ class MonsterScraper:  # (DataRetriever):
 				result['location'] = str(
 					soup.select_one('.location > .name').get_text().strip()
 				)
+				result['city'] = ''  # These would more properly be None
+				result['state_province'] = ''  # However, psycopg2 manages to be utterly useless at handling NULL
+				result['zip'] = ''  # So instead we use empty strings
+				result['country'] = 'United States'  # Good job, psycopg2
+				try:
+					location_parts = result['location'].split(',')
+					result['city'] = location_parts[0].strip().title()
+					if len(location_parts) > 1:
+						result['state_province'] = location_parts[1].strip().upper()
+					if len(location_parts) > 2:
+						result['zip'] = location_parts[2].strip()
+					# if len(location_parts) > 3:
+					# 	result['country'] = location_parts[3].strip().title()
+				except Exception as e:
+					MONSTER_LOG.info(f'Exception while getting location parts: {e}')
+					MONSTER_LOG.info(f'Location string: {result["location"]}')
 				MONSTER_LOG.info('Getting job title...')
 				# result['title'] = str(
 				# 	result_element.find_element_by_xpath(
@@ -344,6 +426,8 @@ class MonsterScraper:  # (DataRetriever):
 				result['timestamp'] = int(time.time())
 
 				MONSTER_LOG.info(f'Got info: {result}')
+				MONSTER_LOG.info('Clearing soup tree...')
+				soup.decompose()
 
 				result.update(self.get_details_inline(result_element))
 				break
