@@ -354,7 +354,7 @@ class MonsterScraper:  # (DataRetriever):
 				tries = 0
 				page_count += 1
 
-				wait_time = 1
+				wait_time = 0
 				MONSTER_LOG.info(f'Loaded jobs, waiting {wait_time} seconds...')
 				time.sleep(wait_time)
 				# load_button.click()
