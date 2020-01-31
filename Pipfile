@@ -14,7 +14,7 @@ numpy = "*"
 pandas = "*"
 psycopg2 = "*"
 beautifulsoup4 = "*"
-decouple = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"
