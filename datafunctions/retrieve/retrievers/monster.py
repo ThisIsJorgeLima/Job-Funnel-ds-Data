@@ -20,6 +20,7 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.firefox.options import Options
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
+from datafunctions.utils import titlecase
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 MONSTER_LOG = logging.getLogger()
@@ -384,13 +385,13 @@ class MonsterScraper(DataRetriever):
 				result['country'] = ''  # Good job, psycopg2
 				try:
 					location_parts = result['location'].split(',')
-					result['city'] = location_parts[0].strip().title()
+					result['city'] = titlecase(location_parts[0].strip())
 					if len(location_parts) > 1:
 						result['state_province'] = location_parts[1].strip().upper()
 					if len(location_parts) > 2:
 						result['zip'] = location_parts[2].strip()
 					# if len(location_parts) > 3:
-					# 	result['country'] = location_parts[3].strip().title()
+					# 	result['country'] = titlecase(location_parts[3].strip())
 				except Exception as e:
 					MONSTER_LOG.info(f'Exception while getting location parts: {e}')
 					MONSTER_LOG.info(f'Location string: {result["location"]}')
