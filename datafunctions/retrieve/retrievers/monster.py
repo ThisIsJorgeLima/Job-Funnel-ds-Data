@@ -498,12 +498,18 @@ class MonsterScraper(DataRetriever):
 			random.shuffle(title_list)
 
 		for job in title_list:
-			self.get_jobs(db_connection, job_title=job)
+			try:
+				self.get_jobs(db_connection, job_title=job)
+			except Exception as e:
+				MONSTER_LOG.warning(f'Failure while getting jobs for title {job}: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
 
 	def __enter__(self):
 		return (self)
 
 	def __exit__(self, exc_type, exc_value, tb):
+		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
+		MONSTER_LOG.info(f'exc_type: {exc_type}')
 		self.driver.close()
 
 
