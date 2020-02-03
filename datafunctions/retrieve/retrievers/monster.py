@@ -9,6 +9,7 @@ import bs4
 import random
 
 from decouple import config
+from typing import Optional, List
 
 from urllib.parse import urlencode
 from selenium import webdriver
@@ -18,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
 from selenium.webdriver.firefox.options import Options
 
-# from datafunctions.retrieve.retrievefunctions import DataRetriever
+from datafunctions.retrieve.retrievefunctions import DataRetriever
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 MONSTER_LOG = logging.getLogger()
@@ -26,52 +27,9 @@ MONSTER_LOG = logging.getLogger()
 curpath = os.path.dirname(os.path.abspath(__file__))
 GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
 
-# options = Options()
-# options.headless = True
 
-# MONSTER_LOG.info('Initializing webdriver.Firefox...')
-# with webdriver.Firefox(
-# 		executable_path=GECKOPATH,
-# 		options=options
-# ) as driver:
-# 	MONSTER_LOG.info('driver initialized.')
-
-# 	wait = WebDriverWait(driver, 10)  # We'll wait a max of 10 seconds for elements to become available.
-
-# 	url = 'https://www.monster.com/jobs/search/?q=Data+Analyst&where='
-# 	MONSTER_LOG.info(f'Getting url: {url}')
-# 	driver.get(url)
-
-# 	# MONSTER_LOG.debug(driver.page_source)
-
-# 	MONSTER_LOG.info('Finding mainContent...')
-# 	mc = wait.until(
-# 		presence_of_element_located(
-# 			(By.XPATH, '//*[@id=\'mainContent\']')
-# 		)
-# 	)
-# 	'/html/body/div[2]/main/div[1]/div[1]/div/div/div[2]/div/section[5]'
-
-# 	MONSTER_LOG.info(f'mainContent: {mc}')
-
-# 	MONSTER_LOG.info('Finding SearchResults...')
-# 	wait.until(
-# 		presence_of_element_located(
-# 			(By.XPATH, '//*[@id="SearchResults"]/*[@class="card-content "]')
-# 		)
-# 	)
-
-# 	MONSTER_LOG.info('Getting card-content...')
-# 	results = driver.find_elements_by_xpath(
-# 		'//*[@class="company"]//*[@class="name"]'
-# 	)
-
-# 	for result in results:
-# 		MONSTER_LOG.info('card-content:')
-# 		MONSTER_LOG.info(result.get_attribute('innerHTML'))
-
-
-class MonsterScraper:  # (DataRetriever):
+class MonsterScraper(DataRetriever):
+	default_title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
 	search_base_url = 'https://www.monster.com/jobs/search/'
 
 	def __init__(self, driver=None, max_wait=5):
@@ -528,17 +486,31 @@ class MonsterScraper:  # (DataRetriever):
 		MONSTER_LOG.info('Done getting details for element.')
 		return (result)
 
-	def get_data(self):
-		return super().get_data()
+	def get_and_store_data(
+			self,
+			db_connection,
+			title_list: Optional[List[str]] = None,
+			**kwargs
+	) -> None:
+		if title_list is None:
+			title_list = self.default_title_list
+			random.shuffle(title_list)
+
+		for job in title_list:
+			self.get_jobs(db_connection, job_title=job)
+
+	def __enter__(self):
+		return (self)
+
+	def __exit__(self, exc_type, exc_value, tb):
+		self.driver.close()
 
 
-title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
-random.shuffle(title_list)
-a = MonsterScraper()
-with psycopg2.connect(dbname=config("DB_DB"), user=config("DB_USER"), password=config("DB_PASSWORD"), host=config("DB_HOST"), port=config("DB_PORT")) as psql_conn:
-	for job in title_list:
-		a.get_jobs(psql_conn, job_title=job)
-a.driver.close()
+# a = MonsterScraper()
+# with psycopg2.connect(dbname=config("DB_DB"), user=config("DB_USER"), password=config("DB_PASSWORD"), host=config("DB_HOST"), port=config("DB_PORT")) as psql_conn:
+# 	for job in title_list:
+# 		a.get_jobs(psql_conn, job_title=job)
+# a.driver.close()
 # print(r[-1])
 
 # sizes = []
