@@ -328,14 +328,10 @@ class MonsterScraper(DataRetriever):
 				wait_time = 0
 				MONSTER_LOG.info(f'Loaded jobs, waiting {wait_time} seconds...')
 				time.sleep(wait_time)
-				# load_button.click()
 			except Exception as e:
 				tries += 1
 				MONSTER_LOG.info(f'Exception {type(e)} while loading more jobs: {e}')
 				MONSTER_LOG.info(e, exc_info=True)
-
-		# MONSTER_LOG.info('Waiting 10 seconds...')
-		# time.sleep(10)
 
 		MONSTER_LOG.info(f'Getting elements: {content_xpath}')
 		result_elements = self.driver.find_elements_by_xpath(
@@ -344,115 +340,11 @@ class MonsterScraper(DataRetriever):
 		result_elements_count = len(result_elements)
 		MONSTER_LOG.info(f'Got {result_elements_count} elements.')
 
-		# results = []
-
 		for index, result_element in enumerate(result_elements):
 			MONSTER_LOG.info(f'Getting info for element {index + 1} of {result_elements_count}')
 			result = self.get_details_json(result_element.get_attribute('data-jobid'))
 			self.add_to_db(db_conn, result)
 		MONSTER_LOG.info(f'Done getting jobs.')
-
-	def get_info(self, result_element, max_tries=5):
-		for tries in range(max_tries):
-			try:
-				MONSTER_LOG.info(f'Getting info for {result_element} [try {tries + 1} of {max_tries}]')
-				MONSTER_LOG.info('Getting outerHTML...')
-				outerhtml = bs4.BeautifulSoup(result_element.get_attribute('outerHTML'))
-				MONSTER_LOG.info('Converting to soup...')
-				soup = outerhtml
-				result = {}
-				MONSTER_LOG.info('Getting company name...')
-				# result['company_name'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="company"]/*[@class="name"]'
-				# 	).get_attribute('innerHTML')
-				# ).strip()
-				result['company_name'] = str(
-					soup.select_one('.company > .name').get_text().strip()
-				)
-				MONSTER_LOG.info('Getting location name...')
-				# result['location'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="location"]/*[@class="name"]'
-				# 	).get_attribute('innerHTML')
-				# ).strip()
-				result['location'] = str(
-					soup.select_one('.location > .name').get_text().strip()
-				)
-				result['city'] = ''  # These would more properly be None
-				result['state_province'] = ''  # However, psycopg2 manages to be utterly useless at handling NULL
-				result['zip'] = ''  # So instead we use empty strings
-				result['country'] = ''  # Good job, psycopg2
-				try:
-					location_parts = result['location'].split(',')
-					result['city'] = titlecase(location_parts[0].strip())
-					if len(location_parts) > 1:
-						result['state_province'] = location_parts[1].strip().upper()
-					if len(location_parts) > 2:
-						result['zip'] = location_parts[2].strip()
-					# if len(location_parts) > 3:
-					# 	result['country'] = titlecase(location_parts[3].strip())
-				except Exception as e:
-					MONSTER_LOG.info(f'Exception while getting location parts: {e}')
-					MONSTER_LOG.info(f'Location string: {result["location"]}')
-				MONSTER_LOG.info('Getting job title...')
-				# result['title'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="title"]/a'
-				# 	).get_attribute('innerHTML')
-				# ).strip()
-				result['title'] = str(
-					soup.select_one('.title > a').get_text().strip()
-				)
-				MONSTER_LOG.info('Getting job link...')
-				# result['inner_link'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="title"]/a'
-				# 	).get_attribute('href')
-				# ).strip()
-				result['inner_link'] = str(
-					soup.select_one('.title > a')['href'].strip()
-				)
-				MONSTER_LOG.info('Getting jobid...')
-				# result['title'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="title"]/a'
-				# 	).get_attribute('innerHTML')
-				# ).strip()
-				result['monster_jobid'] = str(
-					result_element.get_attribute('data-jobid')
-				)
-
-				# MONSTER_LOG.info('Getting date posted...')
-				# result['posted'] = str(
-				# 	result_element.find_element_by_xpath(
-				# 		'.//*[@class="meta flex-col"]/time'
-				# 	).get_attribute('innerHTML')
-				# ).strip()
-
-				# Monster doesn't provide a real post time
-				# So instead we'll just put in right now
-				# This will be at most 48 hours late, but usually closer to accurate
-				result['timestamp'] = int(time.time())
-
-				MONSTER_LOG.info(f'Got info: {result}')
-				MONSTER_LOG.info('Clearing soup tree...')
-				soup.decompose()
-
-				result.update(self.get_details_json(result['monster_jobid']))
-				break
-
-			except Exception as e:
-				MONSTER_LOG.info(f'Exception getting info for {result_element}: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
-				wait_time = 1
-				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
-				time.sleep(wait_time)
-
-		else:
-			raise Exception('Unable to get info after 5 tries.')
-
-		return (result)
 
 	def get_details_json(self, result_element_jobid, max_tries=5):
 		MONSTER_LOG.info(f'Getting info for jobid: {result_element_jobid}')
@@ -501,48 +393,6 @@ class MonsterScraper(DataRetriever):
 		for elem in soup.find_all(['br', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
 			elem.replace_with(elem.text + '\n')
 
-	def get_details_inline(self, result_element):
-		result = {}
-
-		MONSTER_LOG.info(f'Getting details for {result_element}')
-		self.driver.execute_script("arguments[0].click();", result_element)
-		# result_element.click()
-
-		content_xpath = '//*[@id="JobDescription"]'
-		MONSTER_LOG.info(f'Waiting for element: {content_xpath}')
-		result_element = self.wait.until(
-			presence_of_element_located(
-				(By.XPATH, content_xpath)
-			)
-		)
-
-		MONSTER_LOG.info('Getting element text...')
-		result['description'] = str(result_element.get_attribute('innerText')).strip()
-
-		MONSTER_LOG.info('Done getting details for element.')
-		return (result)
-
-	def get_details(self, result):
-		MONSTER_LOG.info(f'Getting details for result: {result}')
-
-		url = result['inner_link']
-		MONSTER_LOG.info(f'Getting url: {url}')
-		self.driver.get(url)
-
-		content_xpath = '//*[@id="JobDescription"]'
-		MONSTER_LOG.info(f'Waiting for element: {content_xpath}')
-		result_element = self.wait.until(
-			presence_of_element_located(
-				(By.XPATH, content_xpath)
-			)
-		)
-
-		MONSTER_LOG.info('Getting element text...')
-		result['description'] = str(result_element.get_attribute('innerText')).strip()
-
-		MONSTER_LOG.info('Done getting details for element.')
-		return (result)
-
 	def get_and_store_data(
 			self,
 			db_connection,
@@ -569,18 +419,3 @@ class MonsterScraper(DataRetriever):
 		self.driver.close()
 
 
-# a = MonsterScraper()
-# with psycopg2.connect(dbname=config("DB_DB"), user=config("DB_USER"), password=config("DB_PASSWORD"), host=config("DB_HOST"), port=config("DB_PORT")) as psql_conn:
-# 	for job in title_list:
-# 		a.get_jobs(psql_conn, job_title=job)
-# a.driver.close()
-# print(r[-1])
-
-# sizes = []
-# for r2 in r:
-# 	for k, v in r2.items():
-# 		sizes.append(sys.getsizeof(k))
-# 		sizes.append(sys.getsizeof(v))
-# print(sizes)
-# print(sum(sizes) / len(r))
-# print(sum(sizes))
