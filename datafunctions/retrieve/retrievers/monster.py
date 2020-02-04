@@ -428,10 +428,14 @@ class MonsterScraper(DataRetriever):
 
 		MONSTER_LOG.info('Converting description to text...')
 		description_text = re.sub(
-			r'\n+',
+			r'\n\n(\s+\n)+',
 			'\n\n',
-			self.html_converter.handle(
-				data['jobDescription'].replace('\n', '<br />')
+			re.sub(
+				r'\n+',
+				'\n\n',
+				self.html_converter.handle(
+					data['jobDescription'].replace('\n', '<br />')
+				)
 			)
 		)
 
