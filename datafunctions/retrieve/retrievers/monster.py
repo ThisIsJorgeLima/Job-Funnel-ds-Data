@@ -461,12 +461,16 @@ class MonsterScraper(DataRetriever):
 				details_url = self.build_details_url(result_element_jobid)
 				MONSTER_LOG.info(f'Getting url: {details_url}')
 				data = requests.get(details_url).json()
+				break
 			except Exception as e:
 				MONSTER_LOG.info(f'Exception getting info for jobid: {result_element_jobid}: {e}')
 				MONSTER_LOG.info(e, exc_info=True)
 				wait_time = 1
 				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
+		else:
+			raise Exception('Unable to get info after 5 tries.')
+
 		MONSTER_LOG.info('Building description_soup...')
 		description_soup = bs4.BeautifulSoup(data['jobDescription'])
 		self.add_newlines(description_soup)
