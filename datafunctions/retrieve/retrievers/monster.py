@@ -348,22 +348,9 @@ class MonsterScraper(DataRetriever):
 
 		for index, result_element in enumerate(result_elements):
 			MONSTER_LOG.info(f'Getting info for element {index + 1} of {result_elements_count}')
-			# result = self.get_info(result_element)
 			result = self.get_details_json(result_element.get_attribute('data-jobid'))
 			self.add_to_db(db_conn, result)
-
-		# MONSTER_LOG.info(f'Getting details for jobs...')
-		# for result in results:
-		# 	max_tries = 3
-		# 	for tries in range(max_tries):
-		# 		try:
-		# 			result = self.get_details(result)
-		# 			break
-		# 		except Exception as e:
-		# 			MONSTER_LOG.info(f'Exception getting details [try {tries + 1} of {max_tries}]: {e}')
-
 		MONSTER_LOG.info(f'Done getting jobs.')
-		# return (results)
 
 	def get_info(self, result_element, max_tries=5):
 		for tries in range(max_tries):
@@ -467,10 +454,19 @@ class MonsterScraper(DataRetriever):
 
 		return (result)
 
-	def get_details_json(self, result_element_jobid):
-		details_url = self.build_details_url(result_element_jobid)
-		MONSTER_LOG.info(f'Getting json for jobid: {result_element_jobid}')
-		data = requests.get(details_url).json()
+	def get_details_json(self, result_element_jobid, max_tries=5):
+		MONSTER_LOG.info(f'Getting info for jobid: {result_element_jobid}')
+		for tries in range(max_tries):
+			try:
+				details_url = self.build_details_url(result_element_jobid)
+				MONSTER_LOG.info(f'Getting url: {details_url}')
+				data = requests.get(details_url).json()
+			except Exception as e:
+				MONSTER_LOG.info(f'Exception getting info for jobid: {result_element_jobid}: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
+				wait_time = 1
+				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
+				time.sleep(wait_time)
 		MONSTER_LOG.info('Building description_soup...')
 		description_soup = bs4.BeautifulSoup(data['jobDescription'])
 		self.add_newlines(description_soup)
