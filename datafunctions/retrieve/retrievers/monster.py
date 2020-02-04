@@ -382,9 +382,6 @@ class MonsterScraper(DataRetriever):
 		else:
 			raise Exception('Unable to get info after 5 tries.')
 
-		MONSTER_LOG.info('Building description_soup...')
-		description_soup = bs4.BeautifulSoup(data['jobDescription'])
-		self.add_newlines(description_soup)
 		MONSTER_LOG.info(f'Getting info...')
 		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"]["name"]}', '').strip()
 		if data['isCustomApplyOnlineJob']:
@@ -392,7 +389,7 @@ class MonsterScraper(DataRetriever):
 		else:
 			link = data['submitButtonUrl']
 		result = {
-			'description': description_soup.get_text().strip(),
+			'description': data['jobDescription'],
 			'company_name': data['companyInfo']['name'],
 			'title': title,
 			'inner_link': link,
@@ -403,14 +400,7 @@ class MonsterScraper(DataRetriever):
 		}
 		MONSTER_LOG.info(f'Got details, result: {result}')
 
-		MONSTER_LOG.info('Cleaning description_soup...')
-		description_soup.decompose()
-
 		return (result)
-
-	def add_newlines(self, soup):
-		for elem in soup.find_all(['br', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-			elem.replace_with(elem.text + '\n')
 
 	def get_and_store_data(
 			self,
