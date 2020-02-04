@@ -167,150 +167,170 @@ class MonsterScraper(DataRetriever):
 			VALUES (%(job_id)s, %(location_id)s);
 		"""
 
-		# Run order: job_listings, job_descriptions, companies, job_companies
-		curr = db_conn.cursor()
+		try:
+			MONSTER_LOG.info('Setting isolation level to READ COMMITTED')
+			db_conn.set_isolation_level(1)
 
-		# Get the company id if it exists
-		curr.execute(
-			company_exists_query,
-			{
-				'name': result['company_name'],
-			}
-		)
-		qr = curr.fetchone()
-		if qr is not None:
-			MONSTER_LOG.info(f'Company {result["company_name"]} already exists in DB.')
-			company_id = qr[0]
-		else:
-			# Otherwise, insert the company and get the id
-			MONSTER_LOG.info(f'Company {result["company_name"]} not yet in DB, adding...')
+			MONSTER_LOG.info('Starting transactions...')
+			curr = db_conn.cursor()
+
+			# Get the company id if it exists
 			curr.execute(
-				companies_query,
+				company_exists_query,
 				{
 					'name': result['company_name'],
 				}
 			)
-			company_id = curr.fetchone()[0]
+			qr = curr.fetchone()
+			if qr is not None:
+				MONSTER_LOG.info(f'Company {result["company_name"]} already exists in DB.')
+				company_id = qr[0]
+			else:
+				# Otherwise, insert the company and get the id
+				MONSTER_LOG.info(f'Company {result["company_name"]} not yet in DB, adding...')
+				curr.execute(
+					companies_query,
+					{
+						'name': result['company_name'],
+					}
+				)
+				company_id = curr.fetchone()[0]
 
-		# Get the location id if it exists
-		curr.execute(
-			location_exists_query,
-			{
-				'city': result['city'],
-				'state_province': result['state_province'],
-				'country': result['country'],
-			}
-		)
-		qr = curr.fetchone()
-		if qr is not None:
-			MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} already exists in DB.')
-			location_id = qr[0]
-		else:
-			# Otherwise, insert the location and get the id
-			MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} not yet in DB, adding...')
+			# Get the location id if it exists
 			curr.execute(
-				locations_query,
+				location_exists_query,
 				{
 					'city': result['city'],
 					'state_province': result['state_province'],
 					'country': result['country'],
 				}
 			)
-			location_id = curr.fetchone()[0]
+			qr = curr.fetchone()
+			if qr is not None:
+				MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} already exists in DB.')
+				location_id = qr[0]
+			else:
+				# Otherwise, insert the location and get the id
+				MONSTER_LOG.info(f'Location {result["city"]}, {result["state_province"]} not yet in DB, adding...')
+				curr.execute(
+					locations_query,
+					{
+						'city': result['city'],
+						'state_province': result['state_province'],
+						'country': result['country'],
+					}
+				)
+				location_id = curr.fetchone()[0]
 
-		# Get the job listing id if it exists
-		curr.execute(
-			job_exists_query,
-			{
-				'title': result['title'],
-				'description': result['description'],
-			}
-		)
-		qr = curr.fetchone()
-		# Get the job listing id if it exists, by company
-		curr.execute(
-			job_exists_query_2,
-			{
-				'title': result['title'],
-				'name': result['company_name'],
-			}
-		)
-		job_id = None
-		qr2 = curr.fetchone()
-
-		# Get the job listing id if it exists, by link url
-		curr.execute(
-			job_link_exists_query,
-			{
-				'external_url': result['inner_link'],
-			}
-		)
-		qr3 = curr.fetchone()
-		if qr is not None:
-			MONSTER_LOG.info(f'Job listing for {result["title"]} already exists in DB.')
-			job_id = qr[0]
-		if qr2 is not None:
-			MONSTER_LOG.info(f'Job listing for {result["title"]} at company {result["company_name"]} already exists in DB.')
-			job_id = qr2[0]
-		if qr3 is not None:
-			MONSTER_LOG.info(f'A job listing with url {result["inner_link"]} already exists in DB.')
-			job_id = qr3[0]
-		if job_id is None:
-			# Otherwise, insert the job listing and get the id
-			MONSTER_LOG.info(f'Job listing for {result["title"]} not yet in DB, adding...')
+			# Get the job listing id if it exists
 			curr.execute(
-				job_listings_query,
+				job_exists_query,
 				{
 					'title': result['title'],
-					'post_date_utc': result['timestamp'],
-				}
-			)
-			job_id = curr.fetchone()[0]
-
-			# Also add the relation to companies
-			MONSTER_LOG.info(f'Adding relation job_id {job_id} to company_id {company_id}...')
-			curr.execute(
-				job_companies_query,
-				{
-					'job_id': job_id,
-					'company_id': company_id,
-				}
-			)
-
-			# Also add the relation to locations
-			MONSTER_LOG.info(f'Adding relation job_id {job_id} to location_id {location_id}...')
-			curr.execute(
-				job_locations_query,
-				{
-					'job_id': job_id,
-					'location_id': location_id,
-				}
-			)
-
-			# And the description
-			MONSTER_LOG.info('Saving description...')
-			curr.execute(
-				job_descriptions_query,
-				{
-					'job_id': job_id,
 					'description': result['description'],
 				}
 			)
-
-			# And the link to the job
-			MONSTER_LOG.info('Saving link...')
+			qr = curr.fetchone()
+			# Get the job listing id if it exists, by company
 			curr.execute(
-				job_links_query,
+				job_exists_query_2,
 				{
-					'job_id': job_id,
+					'title': result['title'],
+					'name': result['company_name'],
+				}
+			)
+			job_id = None
+			qr2 = curr.fetchone()
+
+			# Get the job listing id if it exists, by link url
+			curr.execute(
+				job_link_exists_query,
+				{
 					'external_url': result['inner_link'],
 				}
 			)
+			qr3 = curr.fetchone()
+			if qr is not None:
+				MONSTER_LOG.info(f'Job listing for {result["title"]} already exists in DB.')
+				job_id = qr[0]
+			if qr2 is not None:
+				MONSTER_LOG.info(f'Job listing for {result["title"]} at company {result["company_name"]} already exists in DB.')
+				job_id = qr2[0]
+			if qr3 is not None:
+				MONSTER_LOG.info(f'A job listing with url {result["inner_link"]} already exists in DB.')
+				job_id = qr3[0]
+			if job_id is None:
+				# Otherwise, insert the job listing and get the id
+				MONSTER_LOG.info(f'Job listing for {result["title"]} not yet in DB, adding...')
+				curr.execute(
+					job_listings_query,
+					{
+						'title': result['title'],
+						'post_date_utc': result['timestamp'],
+					}
+				)
+				job_id = curr.fetchone()[0]
 
-		curr.close()
-		MONSTER_LOG.info('Committing changes...')
-		db_conn.commit()
-		MONSTER_LOG.info('Added result to database.')
+				# Also add the relation to companies
+				MONSTER_LOG.info(f'Adding relation job_id {job_id} to company_id {company_id}...')
+				curr.execute(
+					job_companies_query,
+					{
+						'job_id': job_id,
+						'company_id': company_id,
+					}
+				)
+
+				# Also add the relation to locations
+				MONSTER_LOG.info(f'Adding relation job_id {job_id} to location_id {location_id}...')
+				curr.execute(
+					job_locations_query,
+					{
+						'job_id': job_id,
+						'location_id': location_id,
+					}
+				)
+
+				# And the description
+				MONSTER_LOG.info('Saving description...')
+				curr.execute(
+					job_descriptions_query,
+					{
+						'job_id': job_id,
+						'description': result['description'],
+					}
+				)
+
+				# And the link to the job
+				MONSTER_LOG.info('Saving link...')
+				curr.execute(
+					job_links_query,
+					{
+						'job_id': job_id,
+						'external_url': result['inner_link'],
+					}
+				)
+
+			curr.close()
+			MONSTER_LOG.info('Committing changes...')
+			db_conn.commit()
+			MONSTER_LOG.info('Added result to database.')
+
+		except Exception as e:
+			MONSTER_LOG.info(f'Exception {type(e)} while executing transaction: {e}')
+			MONSTER_LOG.info(e, exc_info=True)
+
+			MONSTER_LOG.info('Attempting to close cursor...')
+			try:
+				curr.close()
+			except Exception as e2:
+				MONSTER_LOG.info(f'Exception {type(e2)} while closing cursor, skipping: {e2}')
+
+			MONSTER_LOG.info('Attempting to rollback transaction...')
+			try:
+				db_conn.rollback()
+			except Exception as e2:
+				MONSTER_LOG.info(f'Exception {type(e2)} while rolling back, skipping: {e2}')
 
 	def get_jobs(self, db_conn, job_title='', job_location=''):
 		url = self.build_search_url(job_title=job_title, job_location=job_location)
