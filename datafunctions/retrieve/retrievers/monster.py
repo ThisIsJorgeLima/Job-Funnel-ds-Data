@@ -122,6 +122,13 @@ class MonsterScraper(DataRetriever):
 			VALUES (%(job_id)s, %(external_url)s);
 		"""
 
+		job_link_exists_query = """
+			SELECT job_id
+			FROM job_links
+			WHERE external_url = %(external_url)s
+			LIMIT 1;
+		"""
+
 		company_exists_query = """
 			SELECT id
 			FROM companies
@@ -230,12 +237,24 @@ class MonsterScraper(DataRetriever):
 		)
 		job_id = None
 		qr2 = curr.fetchone()
+
+		# Get the job listing id if it exists, by link url
+		curr.execute(
+			job_link_exists_query,
+			{
+				'external_url': result['inner_link'],
+			}
+		)
+		qr3 = curr.fetchone()
 		if qr is not None:
 			MONSTER_LOG.info(f'Job listing for {result["title"]} already exists in DB.')
 			job_id = qr[0]
 		if qr2 is not None:
 			MONSTER_LOG.info(f'Job listing for {result["title"]} at company {result["company_name"]} already exists in DB.')
 			job_id = qr2[0]
+		if qr3 is not None:
+			MONSTER_LOG.info(f'A job listing with url {result["inner_link"]} already exists in DB.')
+			job_id = qr3[0]
 		if job_id is None:
 			# Otherwise, insert the job listing and get the id
 			MONSTER_LOG.info(f'Job listing for {result["title"]} not yet in DB, adding...')
