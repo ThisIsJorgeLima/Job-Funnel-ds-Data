@@ -348,7 +348,8 @@ class MonsterScraper(DataRetriever):
 
 		for index, result_element in enumerate(result_elements):
 			MONSTER_LOG.info(f'Getting info for element {index + 1} of {result_elements_count}')
-			result = self.get_info(result_element)
+			# result = self.get_info(result_element)
+			result = self.get_details_json(result_element.get_attribute('data-jobid'))
 			self.add_to_db(db_conn, result)
 
 		# MONSTER_LOG.info(f'Getting details for jobs...')
@@ -470,16 +471,29 @@ class MonsterScraper(DataRetriever):
 		details_url = self.build_details_url(result_element_jobid)
 		MONSTER_LOG.info(f'Getting json for jobid: {result_element_jobid}')
 		data = requests.get(details_url).json()
-		MONSTER_LOG.info('Building soup...')
-		soup = bs4.BeautifulSoup(data['jobDescription'])
-		self.add_newlines(soup)
+		MONSTER_LOG.info('Building description_soup...')
+		description_soup = bs4.BeautifulSoup(data['jobDescription'])
+		self.add_newlines(description_soup)
+		MONSTER_LOG.info(f'Getting info...')
+		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"]["name"]}', '').strip()
+		if data['isCustomApplyOnlineJob']:
+			link = data['customApplyUrl']
+		else:
+			link = data['submitButtonUrl']
 		result = {
-			'description': soup.get_text().strip()
+			'description': description_soup.get_text().strip(),
+			'company_name': data['companyInfo']['name'],
+			'title': title,
+			'inner_link': link,
+			'country': data.get('jobLocationCountry', ''),
+			'state_province': titlecase(data.get('jobLocationRegion', '')),
+			'city': titlecase(data.get('jobLocationCity', '')),
+			'timestamp': int(time.time()),
 		}
 		MONSTER_LOG.info(f'Got details, result: {result}')
 
-		MONSTER_LOG.info('Cleaning soup...')
-		soup.decompose()
+		MONSTER_LOG.info('Cleaning description_soup...')
+		description_soup.decompose()
 
 		return (result)
 
