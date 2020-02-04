@@ -15,6 +15,7 @@ pandas = "*"
 psycopg2 = "*"
 beautifulsoup4 = "*"
 python-decouple = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

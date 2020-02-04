@@ -7,6 +7,7 @@ import time
 import psycopg2
 import bs4
 import random
+import requests
 
 from decouple import config
 from typing import Optional, List
@@ -32,6 +33,7 @@ GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
 class MonsterScraper(DataRetriever):
 	default_title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
 	search_base_url = 'https://www.monster.com/jobs/search/'
+	details_base_url = 'https://job-openings.monster.com/v2/job/pure-json-view'
 
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
@@ -44,17 +46,27 @@ class MonsterScraper(DataRetriever):
 		self.driver = driver
 		self.wait = WebDriverWait(self.driver, max_wait)
 
-	def build_url(self, job_title='', job_location='', time=1):
+	def build_search_url(self, job_title='', job_location='', time=1):
 		params = {
 			'where': job_location,
 			'q': job_title,
 			'tm': time,
 		}
-		MONSTER_LOG.info(f'Building url with base url {self.search_base_url} and params {params}')
+		MONSTER_LOG.info(f'Building search url with base url {self.search_base_url} and params {params}')
 		query = urlencode(params)
 		search_url = f'{self.search_base_url}?{query}'
-		MONSTER_LOG.info(f'Built url: {search_url}')
+		MONSTER_LOG.info(f'Built search url: {search_url}')
 		return (search_url)
+
+	def build_details_url(self, jobid):
+		params = {
+			'jobid': jobid,
+		}
+		MONSTER_LOG.info(f'Building details url with base url {self.details_base_url} and params {params}')
+		query = urlencode(params)
+		details_url = f'{self.details_base_url}?{query}'
+		MONSTER_LOG.info(f'Built url: {details_url}')
+		return (details_url)
 
 	def add_to_db(self, db_conn, result):
 		MONSTER_LOG.info('Adding result to database...')
@@ -282,7 +294,7 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info('Added result to database.')
 
 	def get_jobs(self, db_conn, job_title='', job_location=''):
-		url = self.build_url(job_title=job_title, job_location=job_location)
+		url = self.build_search_url(job_title=job_title, job_location=job_location)
 		MONSTER_LOG.info(f'Getting url: {url}')
 		self.driver.get(url)
 
@@ -413,6 +425,15 @@ class MonsterScraper(DataRetriever):
 				result['inner_link'] = str(
 					soup.select_one('.title > a')['href'].strip()
 				)
+				MONSTER_LOG.info('Getting jobid...')
+				# result['title'] = str(
+				# 	result_element.find_element_by_xpath(
+				# 		'.//*[@class="title"]/a'
+				# 	).get_attribute('innerHTML')
+				# ).strip()
+				result['monster_jobid'] = str(
+					result_element.get_attribute('data-jobid')
+				)
 
 				# MONSTER_LOG.info('Getting date posted...')
 				# result['posted'] = str(
@@ -430,7 +451,7 @@ class MonsterScraper(DataRetriever):
 				MONSTER_LOG.info('Clearing soup tree...')
 				soup.decompose()
 
-				result.update(self.get_details_inline(result_element))
+				result.update(self.get_details_json(result['monster_jobid']))
 				break
 
 			except Exception as e:
@@ -444,6 +465,27 @@ class MonsterScraper(DataRetriever):
 			raise Exception('Unable to get info after 5 tries.')
 
 		return (result)
+
+	def get_details_json(self, result_element_jobid):
+		details_url = self.build_details_url(result_element_jobid)
+		MONSTER_LOG.info(f'Getting json for jobid: {result_element_jobid}')
+		data = requests.get(details_url).json()
+		MONSTER_LOG.info('Building soup...')
+		soup = bs4.BeautifulSoup(data['jobDescription'])
+		self.add_newlines(soup)
+		result = {
+			'description': soup.get_text().strip()
+		}
+		MONSTER_LOG.info(f'Got details, result: {result}')
+
+		MONSTER_LOG.info('Cleaning soup...')
+		soup.decompose()
+
+		return (result)
+
+	def add_newlines(self, soup):
+		for elem in soup.find_all(['br', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+			elem.replace_with(elem.text + '\n')
 
 	def get_details_inline(self, result_element):
 		result = {}
