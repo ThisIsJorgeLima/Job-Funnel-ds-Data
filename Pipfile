@@ -16,6 +16,8 @@ psycopg2 = "*"
 beautifulsoup4 = "*"
 python-decouple = "*"
 requests = "*"
+flask = "*"
+html2text = "*"
 
 [requires]
 python_version = "3.7"

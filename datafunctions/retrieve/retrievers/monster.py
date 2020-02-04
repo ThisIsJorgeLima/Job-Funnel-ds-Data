@@ -5,9 +5,11 @@ import sys
 import logging
 import time
 import psycopg2
-import bs4
 import random
 import requests
+import datetime
+import html2text
+import re
 
 from decouple import config
 from typing import Optional, List
@@ -44,6 +46,12 @@ class MonsterScraper(DataRetriever):
 				options=options
 			)
 		self.driver = driver
+		self.html_converter = html2text.HTML2Text()
+		self.html_converter.ignore_links = True
+		self.html_converter.ignore_images = True
+		self.html_converter.ignore_emphasis = True
+		self.html_converter.ignore_anchors = True
+		self.html_converter.body_width = 0
 		self.wait = WebDriverWait(self.driver, max_wait)
 
 	def build_search_url(self, job_title='', job_location='', time=1):
@@ -379,11 +387,27 @@ class MonsterScraper(DataRetriever):
 		result_elements_count = len(result_elements)
 		MONSTER_LOG.info(f'Got {result_elements_count} elements.')
 
+		MONSTER_LOG.info(f'Getting jobids, start time: {datetime.datetime.now()}')
+		result_element_jobids = []
 		for index, result_element in enumerate(result_elements):
-			MONSTER_LOG.info(f'Getting info for element {index + 1} of {result_elements_count}')
-			result = self.get_details_json(result_element.get_attribute('data-jobid'))
-			self.add_to_db(db_conn, result)
-		MONSTER_LOG.info(f'Done getting jobs.')
+			try:
+				MONSTER_LOG.info(f'Getting jobid for element {index + 1} of {result_elements_count}')
+				result_element_jobids.append(result_element.get_attribute('data-jobid'))
+			except Exception as e:
+				MONSTER_LOG.info(f'Exception {type(e)} while getting jobid for element {index + 1}: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
+		MONSTER_LOG.info(f'Done getting jobids, end time: {datetime.datetime.now()}')
+
+		MONSTER_LOG.info(f'Getting job info, start time: {datetime.datetime.now()}')
+		for index, result_element_jobid in enumerate(result_element_jobids):
+			try:
+				MONSTER_LOG.info(f'Getting job info for element {index + 1} of {result_elements_count}')
+				result = self.get_details_json(result_element_jobid)
+				self.add_to_db(db_conn, result)
+			except Exception as e:
+				MONSTER_LOG.info(f'Exception {type(e)} while getting info for element {index + 1}: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
+		MONSTER_LOG.info(f'Done getting job info, end time: {datetime.datetime.now()}.')
 
 	def get_details_json(self, result_element_jobid, max_tries=5):
 		MONSTER_LOG.info(f'Getting info for jobid: {result_element_jobid}')
@@ -402,6 +426,15 @@ class MonsterScraper(DataRetriever):
 		else:
 			raise Exception('Unable to get info after 5 tries.')
 
+		MONSTER_LOG.info('Converting description to text...')
+		description_text = re.sub(
+			r'\n+',
+			'\n\n',
+			self.html_converter.handle(
+				data['jobDescription'].replace('\n', '<br />')
+			)
+		)
+
 		MONSTER_LOG.info(f'Getting info...')
 		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"]["name"]}', '').strip()
 		if data['isCustomApplyOnlineJob']:
@@ -409,7 +442,7 @@ class MonsterScraper(DataRetriever):
 		else:
 			link = data['submitButtonUrl']
 		result = {
-			'description': data['jobDescription'],
+			'description': description_text.strip(),
 			'company_name': data['companyInfo']['name'],
 			'title': title,
 			'inner_link': link,
