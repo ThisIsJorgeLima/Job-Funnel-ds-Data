@@ -22,6 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from pyvirtualdisplay import Display
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
@@ -42,6 +43,7 @@ class MonsterScraper(DataRetriever):
 	details_base_url = 'https://job-openings.monster.com/v2/job/pure-json-view'
 
 	def __init__(self, driver=None, max_wait=5):
+		self.display = Display(visible=0, size=(1024, 768))
 		if driver is None:
 			contents = os.listdir(FIREFOXBASEPATH)
 			MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
@@ -501,5 +503,6 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
 		MONSTER_LOG.info(f'exc_type: {exc_type}')
 		self.driver.close()
+		self.display.stop()
 
 
