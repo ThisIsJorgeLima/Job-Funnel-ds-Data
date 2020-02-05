@@ -21,6 +21,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
@@ -30,6 +31,7 @@ MONSTER_LOG = logging.getLogger('root')
 
 curpath = os.path.dirname(os.path.abspath(__file__))
 GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
+FIREFOXPATH = '/opt/elasticbeanstalk/bin/firefox/firefox'
 
 
 class MonsterScraper(DataRetriever):
@@ -41,9 +43,11 @@ class MonsterScraper(DataRetriever):
 		if driver is None:
 			options = Options()
 			options.headless = True
+			binary = FirefoxBinary(FIREFOXPATH)
 			driver = webdriver.Firefox(
 				executable_path=GECKOPATH,
-				options=options
+				options=options,
+				firefox_binary=binary,
 			)
 		self.driver = driver
 		self.html_converter = html2text.HTML2Text()
