@@ -31,8 +31,10 @@ MONSTER_LOG = logging.getLogger('root')
 
 curpath = os.path.dirname(os.path.abspath(__file__))
 GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
-FIREFOXPATH = '/opt/firefox/firefox'
-
+FIREFOXBASEPATH = os.path.join(curpath, '../webdrivers')
+FIREFOXDLPATH = os.path.join(FIREFOXBASEPATH, 'firefox-latest.tar.bz2')
+FIREFOXPATH = os.path.join(FIREFOXBASEPATH, 'firefox/firefox')
+FIREFOXURL = 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
 
 class MonsterScraper(DataRetriever):
 	default_title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
@@ -41,8 +43,15 @@ class MonsterScraper(DataRetriever):
 
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
-			MONSTER_LOG.info(f'Firefox directory: {os.path.dirname(FIREFOXPATH)}')
-			MONSTER_LOG.info(f'Contents: {os.listdir(os.path.dirname(FIREFOXPATH))}')
+			contents = os.listdir(FIREFOXBASEPATH)
+			MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
+			if 'firefox' not in contents:
+				MONSTER_LOG.info('Getting firefox...')
+				os.system(f'wget -O {FIREFOXDLPATH} "{FIREFOXURL}"')
+				MONSTER_LOG.info('Extracting firefox...')
+				os.system(f'bzcat {FIREFOXDLPATH} | tar xvf -')
+				contents = os.listdir(FIREFOXBASEPATH)
+				MONSTER_LOG.info(f'New firefoxbasepath contents: {contents}')
 			options = Options()
 			options.headless = True
 			binary = FirefoxBinary(FIREFOXPATH)
