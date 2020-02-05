@@ -41,6 +41,8 @@ class MonsterScraper(DataRetriever):
 
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
+			MONSTER_LOG.info(f'Firefox directory: {os.path.dirname(FIREFOXPATH)}')
+			MONSTER_LOG.info(f'Contents: {os.listdir(os.path.dirname(FIREFOXPATH))}')
 			options = Options()
 			options.headless = True
 			binary = FirefoxBinary(FIREFOXPATH)
