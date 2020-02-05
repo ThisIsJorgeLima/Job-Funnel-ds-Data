@@ -20,12 +20,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
 
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 MONSTER_LOG = logging.getLogger('root')
+
+curpath = os.path.dirname(os.path.abspath(__file__))
+PHANTOMJSPATH = os.path.join(curpath, '../webdrivers/phantomjs-2.1.1-linux-x86_64/bin/phantomjs')
+
 
 class MonsterScraper(DataRetriever):
 	default_title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
@@ -35,7 +40,7 @@ class MonsterScraper(DataRetriever):
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
 			MONSTER_LOG.info('Creating webdriver...')
-			driver = webdriver.PhantomJS()
+			driver = webdriver.PhantomJS(executable_path=PHANTOMJSPATH)
 			driver.set_window_size('1920', '1080')
 			MONSTER_LOG.info(f'webdriver: {driver}')
 		self.driver = driver
