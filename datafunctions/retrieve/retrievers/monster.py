@@ -43,25 +43,29 @@ class MonsterScraper(DataRetriever):
 	details_base_url = 'https://job-openings.monster.com/v2/job/pure-json-view'
 
 	def __init__(self, driver=None, max_wait=5):
-		self.display = Display(visible=0, size=(1024, 768))
 		if driver is None:
-			contents = os.listdir(FIREFOXBASEPATH)
-			MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
-			if 'firefox' not in contents:
-				MONSTER_LOG.info('Getting firefox...')
-				os.system(f'wget -O {FIREFOXDLPATH} "{FIREFOXURL}"')
-				MONSTER_LOG.info('Extracting firefox...')
-				os.system(f'bzcat {FIREFOXDLPATH} | tar xvf - -C {FIREFOXBASEPATH}')
+			MONSTER_LOG.info('Creating Display object...')
+			with Display(visible=True, size=(1024, 768)):
+				MONSTER_LOG.info('Starting webdriver preinitialization setup...')
 				contents = os.listdir(FIREFOXBASEPATH)
-				MONSTER_LOG.info(f'New firefoxbasepath contents: {contents}')
-			options = Options()
-			options.headless = True
-			binary = FirefoxBinary(FIREFOXPATH)
-			driver = webdriver.Firefox(
-				executable_path=GECKOPATH,
-				options=options,
-				firefox_binary=binary,
-			)
+				MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
+				if 'firefox' not in contents:
+					MONSTER_LOG.info('Getting firefox...')
+					os.system(f'wget -O {FIREFOXDLPATH} "{FIREFOXURL}"')
+					MONSTER_LOG.info('Extracting firefox...')
+					os.system(f'bzcat {FIREFOXDLPATH} | tar xvf - -C {FIREFOXBASEPATH}')
+					contents = os.listdir(FIREFOXBASEPATH)
+					MONSTER_LOG.info(f'New firefoxbasepath contents: {contents}')
+				options = Options()
+				options.headless = True
+				binary = FirefoxBinary(FIREFOXPATH)
+				MONSTER_LOG.info('Creating webdriver...')
+				driver = webdriver.Firefox(
+					executable_path=GECKOPATH,
+					options=options,
+					firefox_binary=binary,
+				)
+				MONSTER_LOG.info(f'webdriver: {driver}')
 		self.driver = driver
 		self.html_converter = html2text.HTML2Text()
 		self.html_converter.ignore_links = True
@@ -503,6 +507,5 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
 		MONSTER_LOG.info(f'exc_type: {exc_type}')
 		self.driver.close()
-		self.display.stop()
 
 
