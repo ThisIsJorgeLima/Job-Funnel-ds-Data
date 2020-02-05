@@ -25,8 +25,8 @@ from selenium.webdriver.firefox.options import Options
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-MONSTER_LOG = logging.getLogger()
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+MONSTER_LOG = logging.getLogger('root')
 
 curpath = os.path.dirname(os.path.abspath(__file__))
 GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
@@ -52,6 +52,7 @@ class MonsterScraper(DataRetriever):
 		self.html_converter.ignore_emphasis = True
 		self.html_converter.ignore_anchors = True
 		self.html_converter.body_width = 0
+		self.get_info_delay = 2  # Number of seconds to wait between requests to get info
 		self.wait = WebDriverWait(self.driver, max_wait)
 
 	def build_search_url(self, job_title='', job_location='', time=1):
@@ -401,6 +402,8 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'Getting job info, start time: {datetime.datetime.now()}')
 		for index, result_element_jobid in enumerate(result_element_jobids):
 			try:
+				MONSTER_LOG.info(f'Waiting {self.get_info_delay} seconds...')
+				time.sleep(self.get_info_delay)
 				MONSTER_LOG.info(f'Getting job info for element {index + 1} of {result_elements_count}')
 				result = self.get_details_json(result_element_jobid)
 				self.add_to_db(db_conn, result)
@@ -420,7 +423,7 @@ class MonsterScraper(DataRetriever):
 			except Exception as e:
 				MONSTER_LOG.info(f'Exception getting info for jobid: {result_element_jobid}: {e}')
 				MONSTER_LOG.info(e, exc_info=True)
-				wait_time = 1
+				wait_time = 3
 				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
 		else:
