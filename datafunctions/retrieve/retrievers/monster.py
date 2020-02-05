@@ -20,22 +20,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-from pyvirtualdisplay import Display
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
 
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 MONSTER_LOG = logging.getLogger('root')
-
-curpath = os.path.dirname(os.path.abspath(__file__))
-GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
-FIREFOXBASEPATH = os.path.join(curpath, '../webdrivers')
-FIREFOXDLPATH = os.path.join(FIREFOXBASEPATH, 'firefox-latest.tar.bz2')
-FIREFOXPATH = os.path.join(FIREFOXBASEPATH, 'firefox/firefox')
-FIREFOXURL = 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US'
 
 class MonsterScraper(DataRetriever):
 	default_title_list = ['Data Analyst', 'Web Engineer', 'Software Engineer', 'UI Engineer', 'Backend Engineer', 'Machine Learning Engineer', 'Frontend Engineer', 'Support Engineer', 'Full-stack Engineer', 'QA Engineer', 'Web Developer', 'Software Developer', 'UI Developer', 'Backend Developer', 'Machine Learning Developer', 'Frontend Developer', 'Support Developer', 'Full-stack Developer', 'QA Developer', 'Developer']
@@ -44,30 +34,10 @@ class MonsterScraper(DataRetriever):
 
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
-			MONSTER_LOG.info('Creating Display object...')
-			with Display(visible=False, size=(1024, 768)) as self.display:
-				self.display.start()
-				MONSTER_LOG.info(f'display: {self.display}')
-				MONSTER_LOG.info('Starting webdriver preinitialization setup...')
-				contents = os.listdir(FIREFOXBASEPATH)
-				MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
-				if 'firefox' not in contents:
-					MONSTER_LOG.info('Getting firefox...')
-					os.system(f'wget -O {FIREFOXDLPATH} "{FIREFOXURL}"')
-					MONSTER_LOG.info('Extracting firefox...')
-					os.system(f'bzcat {FIREFOXDLPATH} | tar xvf - -C {FIREFOXBASEPATH}')
-					contents = os.listdir(FIREFOXBASEPATH)
-					MONSTER_LOG.info(f'New firefoxbasepath contents: {contents}')
-				options = Options()
-				options.headless = True
-				binary = FirefoxBinary(FIREFOXPATH)
-				MONSTER_LOG.info('Creating webdriver...')
-				driver = webdriver.Firefox(
-					executable_path=GECKOPATH,
-					options=options,
-					firefox_binary=binary,
-				)
-				MONSTER_LOG.info(f'webdriver: {driver}')
+			MONSTER_LOG.info('Creating webdriver...')
+			driver = webdriver.PhantomJS()
+			driver.set_window_size('1920', '1080')
+			MONSTER_LOG.info(f'webdriver: {driver}')
 		self.driver = driver
 		self.html_converter = html2text.HTML2Text()
 		self.html_converter.ignore_links = True
@@ -508,7 +478,6 @@ class MonsterScraper(DataRetriever):
 	def __exit__(self, exc_type, exc_value, tb):
 		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
 		MONSTER_LOG.info(f'exc_type: {exc_type}')
-		self.driver.close()
-		self.display.close()
+		self.driver.quit()
 
 
