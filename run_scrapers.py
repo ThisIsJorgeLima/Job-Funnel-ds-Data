@@ -1,10 +1,15 @@
 import psycopg2
+import logging
 
 from decouple import config
 from datafunctions.populate import Populator
+from datafunctions.log.log import startLog, getLogFile
 
 
 if __name__ == "__main__":
+	startLog(getLogFile(__file__))
+	RUN_LOG = logging.getLogger('root')
+	RUN_LOG.info('Establishing database connection...')
 	with psycopg2.connect(
 			dbname=config("DB_DB"),
 			user=config("DB_USER"),
@@ -12,5 +17,8 @@ if __name__ == "__main__":
 			host=config("DB_HOST"),
 			port=config("DB_PORT")
 	) as psql_conn:
+		RUN_LOG.info('Running scrapers...')
 		Populator().retrieve_and_save_data(psql_conn)
+
+	RUN_LOG.info('Done, exiting.')
 
