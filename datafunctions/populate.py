@@ -1,15 +1,19 @@
 
+import logging
+
 from typing import Optional, Type, List
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.retrieve import retrievers
 from datafunctions.utils import descendants
 
+POPULATE_LOG = logging.getLogger('root')
+
 
 class Populator:
 	def __init__(self):
-		pass
+		POPULATE_LOG.info('Populator instantiated.')
 
-	def retrieve_and_save_data(self, db_conn, retriever_class: Optional[List[Type[DataRetriever]]] = None) -> None:
+	def retrieve_and_save_data(self, db_conn, retriever_classes: Optional[List[Type[DataRetriever]]] = None) -> None:
 		"""
 		Retrieves data from each DataRetriever provided, then saves it to the database.
 
@@ -18,23 +22,27 @@ class Populator:
 				Defaults to every retriever_class in datafunctions.retrieve.retriever_class.
 		"""
 
-		if retriever_class is None:
-			retriever_class = descendants(DataRetriever)
-		retriever_class_store = []
-		retriever_class_get = []
-		for retriever_class in retriever_class:
+		if retriever_classes is None:
+			POPULATE_LOG.info('retriever_classes not passed, auto-populating.')
+			retriever_classes = descendants(DataRetriever)
+		POPULATE_LOG.info(f'retriever_classes: {retriever_classes}')
+		retriever_classes_store = []
+		retriever_classes_get = []
+		for retriever_class in retriever_classes:
 			# If the retriever_class class has a get_data method, we'll use that
 			if getattr(retriever_class, "get_data", None) not in [None, DataRetriever.get_data]:
-				retriever_class_get.append(retriever_class)
+				retriever_classes_get.append(retriever_class)
 			# Otherwise, we'll use the get_and_store_data method
 			else:
-				retriever_class_store.append(retriever_class)
-		if len(retriever_class_get):
-			data = self.retrieve_data(retriever_class_get)
+				retriever_classes_store.append(retriever_class)
+		POPULATE_LOG.info(f'retriever_classes_get: {retriever_classes_get}')
+		POPULATE_LOG.info(f'retriever_classes_store: {retriever_classes_store}')
+		if len(retriever_classes_get):
+			data = self.retrieve_data(retriever_classes_get)
 			data_deduplicated = self.deduplicate_data(data)
 			self.save_data(db_conn, data_deduplicated)
-		if len(retriever_class_store):
-			self.get_and_store_data(db_conn, retriever_class_store)
+		if len(retriever_classes_store):
+			self.get_and_store_data(db_conn, retriever_classes_store)
 
 	def get_and_store_data(self, db_conn, retriever_class: List[Type[DataRetriever]]) -> None:
 		"""
@@ -44,9 +52,14 @@ class Populator:
 			retriever_class (List[Type[DataRetriever]]): retriever_class classes to call.
 		"""
 
+		POPULATE_LOG.info('get_and_store_data called.')
 		for retriever_class in retriever_class:
+			POPULATE_LOG.info(f'Instantiating retriever class: {retriever_class}')
 			with retriever_class() as r:
+				POPULATE_LOG.info(f'Calling get_and_store_data on instance: {r}')
 				r.get_and_store_data(db_conn)
+				POPULATE_LOG.info(f'Done get_and_store_data on instance: {r}')
+		POPULATE_LOG.info('get_and_store_data done.')
 
 	def retrieve_data(self, retriever_class: List[Type[DataRetriever]]) -> List[dict]:
 		"""

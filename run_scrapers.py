@@ -10,15 +10,19 @@ if __name__ == "__main__":
 	startLog(getLogFile(__file__))
 	RUN_LOG = logging.getLogger('root')
 	RUN_LOG.info('Establishing database connection...')
-	with psycopg2.connect(
-			dbname=config("DB_DB"),
-			user=config("DB_USER"),
-			password=config("DB_PASSWORD"),
-			host=config("DB_HOST"),
-			port=config("DB_PORT")
-	) as psql_conn:
-		RUN_LOG.info('Running scrapers...')
-		Populator().retrieve_and_save_data(psql_conn)
+	try:
+		with psycopg2.connect(
+				dbname=config("DB_DB"),
+				user=config("DB_USER"),
+				password=config("DB_PASSWORD"),
+				host=config("DB_HOST"),
+				port=config("DB_PORT")
+		) as psql_conn:
+			RUN_LOG.info('Running scrapers...')
+			Populator().retrieve_and_save_data(psql_conn)
+	except Exception as e:
+		RUN_LOG.warning(f'Failure while connecting or scraping: {e}')
+		RUN_LOG.warning(e, exc_info=True)
 
 	RUN_LOG.info('Done, exiting.')
 
