@@ -21,7 +21,7 @@ for handler in APP_LOG.handlers:
 	application.logger.addHandler(handler)
 
 
-@application.route('/start')
+@application.route('/start', methods=['GET', 'POST'])
 def start():
 	"""
 	Starts the web scrapers.
