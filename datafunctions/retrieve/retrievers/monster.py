@@ -45,7 +45,8 @@ class MonsterScraper(DataRetriever):
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
 			MONSTER_LOG.info('Creating Display object...')
-			with Display(visible=True, size=(1024, 768)):
+			with Display(visible=True, size=(1024, 768)) as self.display:
+				MONSTER_LOG.info(f'display: {self.display}')
 				MONSTER_LOG.info('Starting webdriver preinitialization setup...')
 				contents = os.listdir(FIREFOXBASEPATH)
 				MONSTER_LOG.info(f'Firefoxbasepath contents: {contents}')
@@ -507,5 +508,6 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
 		MONSTER_LOG.info(f'exc_type: {exc_type}')
 		self.driver.close()
+		self.display.close()
 
 
