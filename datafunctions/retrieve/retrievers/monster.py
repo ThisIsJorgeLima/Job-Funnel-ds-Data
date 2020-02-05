@@ -49,7 +49,7 @@ class MonsterScraper(DataRetriever):
 				MONSTER_LOG.info('Getting firefox...')
 				os.system(f'wget -O {FIREFOXDLPATH} "{FIREFOXURL}"')
 				MONSTER_LOG.info('Extracting firefox...')
-				os.system(f'bzcat {FIREFOXDLPATH} | tar xvf -')
+				os.system(f'bzcat {FIREFOXDLPATH} | tar xvf - -C {FIREFOXBASEPATH}')
 				contents = os.listdir(FIREFOXBASEPATH)
 				MONSTER_LOG.info(f'New firefoxbasepath contents: {contents}')
 			options = Options()
