@@ -31,7 +31,7 @@ MONSTER_LOG = logging.getLogger('root')
 
 curpath = os.path.dirname(os.path.abspath(__file__))
 GECKOPATH = os.path.join(curpath, '../webdrivers/geckodriver_ff_linux64')
-FIREFOXPATH = '/opt/elasticbeanstalk/bin/firefox/firefox'
+FIREFOXPATH = '/opt/firefox/firefox'
 
 
 class MonsterScraper(DataRetriever):
