@@ -6,7 +6,7 @@ from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.retrieve import retrievers
 from datafunctions.utils import descendants
 
-POPULATE_LOG = logging.getLogger('root')
+POPULATE_LOG = logging.getLogger(__name__)
 
 
 class Populator:

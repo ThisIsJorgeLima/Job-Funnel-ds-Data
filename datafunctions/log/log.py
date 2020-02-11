@@ -2,24 +2,29 @@
 
 import logging
 from logging.handlers import RotatingFileHandler
-from os import path
+from os import path, popen
 
 
 EB_LOGGING_DIRECTORY = '/opt/python/log/'
 PROJECT_NAME = 'quickhire'
 
 
-def getLogFile(curFile):
+def getLogFile(filename):
 	return (
 		path.join(
 			EB_LOGGING_DIRECTORY,
-			f'{PROJECT_NAME}-{path.basename(curFile)}.log',
+			f'{PROJECT_NAME}-{path.basename(filename)}.log',
 		)
 	)
 
 
+def tailLogFile(filename, n_lines=100):
+	filepath = getLogFile(filename)
+	return(popen(f'tail -n {int(n_lines)} {filepath}').read())
+
+
 def startLog(file):
-	log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(funcName)s(%(lineno)d) %(message)s')
+	log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(funcName)s(%(lineno)d) %(message)s')
 
 	if file is not None:
 		my_handler = RotatingFileHandler(file, mode='a', maxBytes=1 * 1024 * 1024,
@@ -29,10 +34,10 @@ def startLog(file):
 	my_handler.setFormatter(log_formatter)
 	my_handler.setLevel(logging.DEBUG)
 
-	app_log = logging.getLogger('root')
-	app_log.setLevel(logging.DEBUG)
+	root_log = logging.getLogger()
+	root_log.setLevel(logging.DEBUG)
 
-	app_log.addHandler(my_handler)
-	app_log.critical('********************************')
-	app_log.critical('App started, logging initialized')
-	return(app_log)
+	root_log.addHandler(my_handler)
+	root_log.critical('********************************')
+	root_log.critical('App started, logging initialized')
+	return(root_log)

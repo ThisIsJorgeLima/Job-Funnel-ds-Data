@@ -7,8 +7,8 @@ from datafunctions.log.log import startLog, getLogFile
 
 
 if __name__ == "__main__":
-	startLog(getLogFile(__file__))
-	RUN_LOG = logging.getLogger('root')
+	ROOT_LOG = startLog(getLogFile(__file__))
+	RUN_LOG = logging.getLogger(__name__)
 	RUN_LOG.info('Establishing database connection...')
 	try:
 		with psycopg2.connect(

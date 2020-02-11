@@ -6,12 +6,12 @@ import logging
 
 from flask import Flask, jsonify
 from flask.logging import default_handler
-from datafunctions.log.log import startLog, getLogFile
+from datafunctions.log.log import startLog, getLogFile, tailLogFile
 
 
 SCRAPER_NAME = './run_scrapers.py'
 startLog(getLogFile(__file__))
-APP_LOG = logging.getLogger('root')
+APP_LOG = logging.getLogger(__name__)
 
 APP_LOG.info('Creating app...')
 application = Flask(__name__)
@@ -19,6 +19,24 @@ werkzeug_logger = logging.getLogger('werkzeug')
 for handler in APP_LOG.handlers:
 	werkzeug_logger.addHandler(handler)
 	application.logger.addHandler(handler)
+
+
+@application.route('/logs-scrapers', methods=['GET'])
+def logs_scrapers():
+	"""
+	Gets the last 1000 lines of the run_scrapers log
+	"""
+	APP_LOG.info('/logs-scrapers called')
+	return ('<pre>' + tailLogFile('run_scrapers.py', n_lines=1000) + '</pre>')
+
+
+@application.route('/logs-application', methods=['GET'])
+def logs_application():
+	"""
+	Gets the last 1000 lines of the application log
+	"""
+	APP_LOG.info('/logs-application called')
+	return ('<pre>' + tailLogFile('application.py', n_lines=1000) + '</pre>')
 
 
 @application.route('/start', methods=['GET', 'POST'])

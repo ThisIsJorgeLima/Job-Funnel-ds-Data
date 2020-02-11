@@ -26,7 +26,7 @@ from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
 
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-MONSTER_LOG = logging.getLogger('root')
+MONSTER_LOG = logging.getLogger(__name__)
 
 curpath = os.path.dirname(os.path.abspath(__file__))
 PHANTOMJSPATH = os.path.join(curpath, '../webdrivers/phantomjs-2.1.1-linux-x86_64/bin/phantomjs')
