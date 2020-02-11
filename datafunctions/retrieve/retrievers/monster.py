@@ -45,10 +45,10 @@ class MonsterScraper(DataRetriever):
 			MONSTER_LOG.info(f'webdriver: {driver}')
 		self.driver = driver
 		self.html_converter = html2text.HTML2Text()
-		self.html_converter.ignore_links = True
-		self.html_converter.ignore_images = True
-		self.html_converter.ignore_emphasis = True
-		self.html_converter.ignore_anchors = True
+		# self.html_converter.ignore_links = True
+		# self.html_converter.ignore_images = True
+		# self.html_converter.ignore_emphasis = True
+		# self.html_converter.ignore_anchors = True
 		self.html_converter.body_width = 0
 		self.get_info_delay = 2  # Number of seconds to wait between requests to get info
 		self.wait = WebDriverWait(self.driver, max_wait)
