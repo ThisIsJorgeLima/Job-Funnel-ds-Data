@@ -21,6 +21,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, element_to_be_clickable
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import WebDriverException
 
 from datafunctions.retrieve.retrievefunctions import DataRetriever
 from datafunctions.utils import titlecase
@@ -39,10 +40,7 @@ class MonsterScraper(DataRetriever):
 
 	def __init__(self, driver=None, max_wait=5):
 		if driver is None:
-			MONSTER_LOG.info('Creating webdriver...')
-			driver = webdriver.PhantomJS(executable_path=PHANTOMJSPATH)
-			driver.set_window_size('1920', '1080')
-			MONSTER_LOG.info(f'webdriver: {driver}')
+			driver = self.establish_driver()
 		self.driver = driver
 		self.html_converter = html2text.HTML2Text()
 		# self.html_converter.ignore_links = True
@@ -52,6 +50,35 @@ class MonsterScraper(DataRetriever):
 		self.html_converter.body_width = 0
 		self.get_info_delay = 2  # Number of seconds to wait between requests to get info
 		self.wait = WebDriverWait(self.driver, max_wait)
+
+	def establish_driver(self):
+		"""
+		Establishes the webdriver.
+			If a webdriver already exists, closes that one first.
+		"""
+
+		MONSTER_LOG.info('Establishing webdriver...')
+		try:
+			MONSTER_LOG.info('Closing extant webdriver...')
+			self.driver.close()
+		except WebDriverException as e:
+			MONSTER_LOG.info(f'Extant driver already closed or missing: {e}')
+		except Exception as e:
+			MONSTER_LOG.info(f'Exception {type(e)} while closing extant driver: {e}')
+			MONSTER_LOG.info(e, exc_info=True)
+
+		try:
+			MONSTER_LOG.info('Creating webdriver...')
+			driver = webdriver.PhantomJS(executable_path=PHANTOMJSPATH)
+			driver.set_window_size('1920', '1080')
+			MONSTER_LOG.info(f'webdriver: {driver}')
+			self.driver = driver
+		except Exception as e:
+			MONSTER_LOG.info(f'Exception {type(e)} while creating new driver: {e}')
+			MONSTER_LOG.info(e, exc_info=True)
+			self.driver = None
+
+		return self.driver
 
 	def build_search_url(self, job_title='', job_location='', time=1):
 		params = {
@@ -341,8 +368,21 @@ class MonsterScraper(DataRetriever):
 
 	def get_jobs(self, db_conn, job_title='', job_location=''):
 		url = self.build_search_url(job_title=job_title, job_location=job_location)
-		MONSTER_LOG.info(f'Getting url: {url}')
-		self.driver.get(url)
+		max_tries = 3
+		tries = 0
+		wait_time = 5
+		while tries < max_tries:
+			MONSTER_LOG.info(f'Getting url: {url} (try {tries + 1} of {max_tries})')
+			try:
+				self.driver.get(url)
+				break
+			except Exception as e:
+				tries += 1
+				MONSTER_LOG.info(f'Exception {type(e)} while getting search page: {e}')
+				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.info('Reestablishing driver...')
+				self.establish_driver()
+				time.sleep(wait_time)
 
 		content_xpath = '//*[@id="SearchResults"]/*[contains(@class, "card-content") and not(contains(@class, "apas-ad"))]'
 		MONSTER_LOG.info(f'Waiting for element: {content_xpath}')
@@ -357,6 +397,7 @@ class MonsterScraper(DataRetriever):
 		page_count = 1
 		tries = 0
 		max_tries = 3
+		wait_time = 0
 		while tries < max_tries:
 			MONSTER_LOG.info(f'Attempting to load more jobs (try {tries + 1} of {max_tries}) (page {page_count})')
 			try:
@@ -371,13 +412,13 @@ class MonsterScraper(DataRetriever):
 				tries = 0
 				page_count += 1
 
-				wait_time = 0
 				MONSTER_LOG.info(f'Loaded jobs, waiting {wait_time} seconds...')
 				time.sleep(wait_time)
 			except Exception as e:
 				tries += 1
 				MONSTER_LOG.info(f'Exception {type(e)} while loading more jobs: {e}')
 				MONSTER_LOG.info(e, exc_info=True)
+				time.sleep(wait_time)
 
 		MONSTER_LOG.info(f'Getting elements: {content_xpath}')
 		result_elements = self.driver.find_elements_by_xpath(
