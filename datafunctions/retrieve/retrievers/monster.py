@@ -62,7 +62,9 @@ class MonsterScraper(DataRetriever):
 			MONSTER_LOG.info('Closing extant webdriver...')
 			self.driver.close()
 		except WebDriverException as e:
-			MONSTER_LOG.info(f'Extant driver already closed or missing: {e}')
+			MONSTER_LOG.info(f'Extant driver already closed: {e}')
+		except AttributeError as e:
+			MONSTER_LOG.info(f'No extand driver found: {e}')
 		except Exception as e:
 			MONSTER_LOG.info(f'Exception {type(e)} while closing extant driver: {e}')
 			MONSTER_LOG.info(e, exc_info=True)
@@ -482,14 +484,14 @@ class MonsterScraper(DataRetriever):
 		)
 
 		MONSTER_LOG.info(f'Getting info...')
-		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"]["name"]}', '').strip()
+		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"].get("name", "")}', '').strip()
 		if data['isCustomApplyOnlineJob']:
 			link = data['customApplyUrl']
 		else:
 			link = data['submitButtonUrl']
 		result = {
 			'description': description_text.strip(),
-			'company_name': data['companyInfo']['name'],
+			'company_name': data['companyInfo'].get('name', ''),
 			'title': title,
 			'inner_link': link,
 			'country': data.get('jobLocationCountry', ''),
