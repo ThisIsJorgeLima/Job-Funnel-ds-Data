@@ -24,7 +24,7 @@ def tailLogFile(filename, n_lines=100):
 
 
 def startLog(file):
-	log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(funcName)s(%(lineno)d) %(message)s')
+	log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(filename)s:%(funcName)s(%(lineno)d) %(message)s')
 
 	if file is not None:
 		my_handler = RotatingFileHandler(file, mode='a', maxBytes=1 * 1024 * 1024,
