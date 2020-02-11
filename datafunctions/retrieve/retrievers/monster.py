@@ -499,7 +499,8 @@ class MonsterScraper(DataRetriever):
 			'city': titlecase(data.get('jobLocationCity', '')),
 			'timestamp': int(time.time()),
 		}
-		MONSTER_LOG.info(f'Got details, result: {result}')
+		MONSTER_LOG.info('Got details.')
+		MONSTER_LOG.info(f'Result: {result}')
 
 		return (result)
 
