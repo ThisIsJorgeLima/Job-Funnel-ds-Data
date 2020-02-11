@@ -27,8 +27,8 @@ def startLog(file):
 	log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s:%(filename)s:%(funcName)s(%(lineno)d) %(message)s')
 
 	if file is not None:
-		my_handler = RotatingFileHandler(file, mode='a', maxBytes=1 * 1024 * 1024,
-									backupCount=10, encoding=None, delay=0)
+		my_handler = RotatingFileHandler(file, mode='a', maxBytes=8 * 1024 * 1024,
+									backupCount=16, encoding=None, delay=0)
 	else:
 		my_handler = logging.StreamHandler()
 	my_handler.setFormatter(log_formatter)
