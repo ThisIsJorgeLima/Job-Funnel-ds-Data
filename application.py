@@ -4,7 +4,7 @@ import subprocess
 import sys
 import logging
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask.logging import default_handler
 from datafunctions.log.log import startLog, getLogFile, tailLogFile
 
@@ -37,6 +37,34 @@ def logs_application():
 	"""
 	APP_LOG.info('/logs-application called')
 	return ('<pre>' + tailLogFile('application.py', n_lines=1000) + '</pre>')
+
+
+@application.route('/logs', methods=['GET'])
+def logs():
+	"""
+	Gets the last n lines of a given log
+	"""
+	APP_LOG.info(f'/logs called with args {request.args}')
+	logfile = request.args.get('file', None)
+	lines = request.args.get('lines', 1000)
+
+	if logfile is None:
+		return('''
+		<pre>
+			Parameters:
+				file: The file to get logs for
+					Required
+					Usually one of either application.py or run_scrapers.py
+				lines: Number of lines to get
+					Defaults to 1000
+		</pre>
+		''')
+
+	try:
+		res = tailLogFile(logfile, n_lines=lines)
+		return (f'<pre>{res}</pre>')
+	except Exception as e:
+		return(f'Exception {type(e)} getting logs: {e}')
 
 
 @application.route('/start', methods=['GET', 'POST'])
