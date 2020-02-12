@@ -61,6 +61,7 @@ def health():
 	outputs['free'] = os.popen('free -h').read()
 	outputs['dstat'] = os.popen('dstat -afv 1 0').read()
 	outputs['top'] = os.popen('top -bn1').read()
+	outputs['ps'] = os.popen('ps -Af --forest').read()
 	APP_LOG.info(f'Health results: {outputs}')
 
 	r = ''
