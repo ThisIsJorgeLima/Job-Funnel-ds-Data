@@ -443,6 +443,8 @@ class MonsterScraper(DataRetriever):
 				MONSTER_LOG.info(e, exc_info=True)
 		MONSTER_LOG.info(f'Done getting jobids, end time: {datetime.datetime.now()}')
 
+		del result_elements  # Reduce RAM usage
+
 		MONSTER_LOG.info(f'Getting job info, start time: {datetime.datetime.now()}')
 		for index, result_element_jobid in enumerate(result_element_jobids):
 			try:
