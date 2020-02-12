@@ -60,8 +60,8 @@ def health():
 	outputs['scrapers running'] = check_running(SCRAPER_NAME)
 	outputs['free'] = os.popen('free -h').read()
 	outputs['dstat'] = os.popen('dstat -afv 1 0 | cat').read()
-	outputs['top'] = os.popen('top -bn1').read()
-	outputs['ps'] = os.popen('ps -Af --forest').read()
+	outputs['top'] = os.popen('top -bn1 | cat').read()
+	outputs['ps'] = os.popen('ps -Afly --forest | cat').read()
 	APP_LOG.info(f'Health results: {outputs}')
 
 	r = ''
