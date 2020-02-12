@@ -55,17 +55,18 @@ def health():
 	Prints various health info about the machine.
 	"""
 
+	APP_LOG.info('/health called')
 	outputs = {}
 	outputs['running'] = check_running(SCRAPER_NAME)
 	outputs['free'] = os.popen('free -h').read()
-	outputs['top'] = os.popen('top -bn1 -o %MEM').read()
+	outputs['top'] = os.popen('top -bn1').read()
+	APP_LOG.info(f'Health results: {outputs}')
 
 	r = ''
 	for key, val in outputs.items():
 		r += f'''
 			<hr />
-			<h3>{key}</h3>
-			<br />
+			<h4>{key}</h4>
 			<pre>{val}</pre>
 		'''
 
