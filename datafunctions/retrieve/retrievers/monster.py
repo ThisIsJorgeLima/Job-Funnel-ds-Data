@@ -60,7 +60,7 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info('Establishing webdriver...')
 		try:
 			MONSTER_LOG.info('Closing extant webdriver...')
-			self.driver.close()
+			self.driver.quit()
 		except WebDriverException as e:
 			MONSTER_LOG.info(f'Extant driver already closed: {e}')
 		except AttributeError as e:
@@ -71,7 +71,10 @@ class MonsterScraper(DataRetriever):
 
 		try:
 			MONSTER_LOG.info('Creating webdriver...')
-			driver = webdriver.PhantomJS(executable_path=PHANTOMJSPATH)
+			driver = webdriver.PhantomJS(
+				executable_path=PHANTOMJSPATH,
+				service_log_path=os.path.devnull,
+			)
 			driver.set_window_size('1920', '1080')
 			MONSTER_LOG.info(f'webdriver: {driver}')
 			self.driver = driver
