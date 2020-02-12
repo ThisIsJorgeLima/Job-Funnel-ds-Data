@@ -38,10 +38,9 @@ class MonsterScraper(DataRetriever):
 	search_base_url = 'https://www.monster.com/jobs/search/'
 	details_base_url = 'https://job-openings.monster.com/v2/job/pure-json-view'
 
-	def __init__(self, driver=None, max_wait=5):
-		if driver is None:
-			driver = self.establish_driver()
-		self.driver = driver
+	def __init__(self, max_wait=5):
+		self.driver = None
+		self.establish_driver()
 		self.html_converter = html2text.HTML2Text()
 		# self.html_converter.ignore_links = True
 		# self.html_converter.ignore_images = True
@@ -59,8 +58,9 @@ class MonsterScraper(DataRetriever):
 
 		MONSTER_LOG.info('Establishing webdriver...')
 		try:
-			MONSTER_LOG.info('Closing extant webdriver...')
-			self.driver.quit()
+			if self.driver is not None:
+				MONSTER_LOG.info('Closing extant webdriver...')
+				self.driver.quit()
 		except WebDriverException as e:
 			MONSTER_LOG.info(f'Extant driver already closed: {e}')
 		except AttributeError as e:
@@ -76,7 +76,7 @@ class MonsterScraper(DataRetriever):
 				service_log_path=os.path.devnull,
 			)
 			driver.set_window_size('1920', '1080')
-			MONSTER_LOG.info(f'webdriver: {driver}')
+			MONSTER_LOG.info(f'webdriver created: {driver}')
 			self.driver = driver
 		except Exception as e:
 			MONSTER_LOG.info(f'Exception {type(e)} while creating new driver: {e}')
@@ -445,6 +445,7 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'Done getting jobids, end time: {datetime.datetime.now()}')
 
 		del result_elements  # Reduce RAM usage
+		self.driver = None
 
 		MONSTER_LOG.info(f'Getting job info, start time: {datetime.datetime.now()}')
 		for index, result_element_jobid in enumerate(result_element_jobids):
