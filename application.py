@@ -57,8 +57,9 @@ def health():
 
 	APP_LOG.info('/health called')
 	outputs = {}
-	outputs['running'] = check_running(SCRAPER_NAME)
+	outputs['scrapers running'] = check_running(SCRAPER_NAME)
 	outputs['free'] = os.popen('free -h').read()
+	outputs['dstat'] = os.popen('dstat -afv 1 0').read()
 	outputs['top'] = os.popen('top -bn1').read()
 	APP_LOG.info(f'Health results: {outputs}')
 
