@@ -21,24 +21,6 @@ for handler in APP_LOG.handlers:
 	application.logger.addHandler(handler)
 
 
-@application.route('/logs-scrapers', methods=['GET'])
-def logs_scrapers():
-	"""
-	Gets the last 1000 lines of the run_scrapers log
-	"""
-	APP_LOG.info('/logs-scrapers called')
-	return ('<pre>' + tailLogFile('run_scrapers.py', n_lines=1000) + '</pre>')
-
-
-@application.route('/logs-application', methods=['GET'])
-def logs_application():
-	"""
-	Gets the last 1000 lines of the application log
-	"""
-	APP_LOG.info('/logs-application called')
-	return ('<pre>' + tailLogFile('application.py', n_lines=1000) + '</pre>')
-
-
 @application.route('/logs', methods=['GET'])
 def logs():
 	"""
@@ -65,6 +47,29 @@ def logs():
 		return (f'<pre>{res}</pre>')
 	except Exception as e:
 		return(f'Exception {type(e)} getting logs: {e}')
+
+
+@application.route('/health', methods=['GET'])
+def health():
+	"""
+	Prints various health info about the machine.
+	"""
+
+	outputs = {}
+	outputs['running'] = check_running(SCRAPER_NAME)
+	outputs['free'] = os.popen('free -h').read()
+	outputs['top'] = os.popen('top -bn1 -o %MEM').read()
+
+	r = ''
+	for key, val in outputs.items():
+		r += f'''
+			<hr />
+			<h3>{key}</h3>
+			<br />
+			<pre>{val}</pre>
+		'''
+
+	return r
 
 
 @application.route('/start', methods=['GET', 'POST'])
