@@ -25,7 +25,7 @@ class Populator:
 		if retriever_classes is None:
 			POPULATE_LOG.info('retriever_classes not passed, auto-populating.')
 			retriever_classes = descendants(DataRetriever)
-		POPULATE_LOG.info(f'retriever_classes: {retriever_classes}')
+		POPULATE_LOG.info(f'retriever_classes: {str(retriever_classes)}')
 		retriever_classes_store = []
 		retriever_classes_get = []
 		for retriever_class in retriever_classes:
@@ -35,8 +35,8 @@ class Populator:
 			# Otherwise, we'll use the get_and_store_data method
 			else:
 				retriever_classes_store.append(retriever_class)
-		POPULATE_LOG.info(f'retriever_classes_get: {retriever_classes_get}')
-		POPULATE_LOG.info(f'retriever_classes_store: {retriever_classes_store}')
+		POPULATE_LOG.info(f'retriever_classes_get: {str(retriever_classes_get)}')
+		POPULATE_LOG.info(f'retriever_classes_store: {str(retriever_classes_store)}')
 		if len(retriever_classes_get):
 			data = self.retrieve_data(retriever_classes_get)
 			data_deduplicated = self.deduplicate_data(data)
