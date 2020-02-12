@@ -438,6 +438,7 @@ class MonsterScraper(DataRetriever):
 			try:
 				MONSTER_LOG.info(f'Getting jobid for element {index + 1} of {result_elements_count}')
 				result_element_jobids.append(result_element.get_attribute('data-jobid'))
+				result_elements[index] = None  # More RAM reduction
 			except Exception as e:
 				MONSTER_LOG.info(f'Exception {type(e)} while getting jobid for element {index + 1}: {e}')
 				MONSTER_LOG.info(e, exc_info=True)
