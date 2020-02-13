@@ -547,6 +547,6 @@ class MonsterScraper(DataRetriever):
 	def __exit__(self, exc_type, exc_value, tb):
 		MONSTER_LOG.info(f'__exit__ called, cleaning up...')
 		MONSTER_LOG.info(f'exc_type: {exc_type}')
-		self.driver.quit()
+		self.deestablish_driver()
 
 
