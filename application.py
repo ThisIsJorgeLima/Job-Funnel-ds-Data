@@ -33,7 +33,7 @@ def logs():
 
 	if logfile is None:
 		return('''
-		<pre style="white-space: pre-wrap; overflow-wrap: break-word;">
+		<pre>
 			Parameters:
 				file: The file to get logs for
 					Required
@@ -45,7 +45,7 @@ def logs():
 
 	try:
 		res = tailLogFile(logfile, n_lines=lines)
-		return (f'<pre style="white-space: pre-wrap; overflow-wrap: break-word;">{res}</pre>')
+		return (f'<pre>{res}</pre>')
 	except Exception as e:
 		return(f'Exception {type(e)} getting logs: {e}')
 
