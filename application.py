@@ -11,6 +11,7 @@ from datafunctions.log.log import startLog, getLogFile, tailLogFile
 
 
 SCRAPER_NAME = './run_scrapers.py'
+SCRAPER_NAME_PS = SCRAPER_NAME[2:]
 startLog(getLogFile(__file__))
 APP_LOG = logging.getLogger(__name__)
 
@@ -89,6 +90,36 @@ def health():
 		'''
 
 	return r
+
+
+@application.route('/kill', methods=['GET', 'POST'])
+def kill():
+	"""
+	Kills the web scrapers.
+	"""
+	try:
+		APP_LOG.info('/kill called')
+		tries = 0
+		max_tries = 5
+		while check_running(SCRAPER_NAME) and tries < max_tries:
+			APP_LOG.info(f'Scraper running, attempting to kill it (try {tries + 1} of {max_tries})')
+			r = os.popen(
+				f'kill $(ps -Af | grep {SCRAPER_NAME_PS} | grep -v grep | grep -oP "^[a-zA-Z\s]+[0-9]+" | grep -oP "[0-9]+")'
+			).read()
+			APP_LOG.info(f'Kill call exited with code: {r}')
+			tries += 1
+			if check_running(SCRAPER_NAME):
+				wait_time = 2
+				APP_LOG.info(f'Waiting {wait_time} seconds...')
+				time.sleep(wait_time)
+	except Exception as e:
+		APP_LOG.info(f'Exception while killing scrapers: {e}')
+		APP_LOG.info(e, exc_info=True)
+
+	return f'''
+		<h4>scrapers running</h4>
+		<pre>{check_running(SCRAPER_NAME)}</pre>
+	'''
 
 
 @application.route('/start', methods=['GET', 'POST'])
