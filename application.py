@@ -21,6 +21,7 @@ for handler in APP_LOG.handlers:
 	werkzeug_logger.addHandler(handler)
 	application.logger.addHandler(handler)
 
+
 @application.route('/')
 def index():
 	return '''
@@ -34,6 +35,7 @@ def index():
 			Scraper logs: <a href="/logs?file=run_scrapers.py&amp;lines=100">/logs?file=run_scrapers.py</a>
 		</body></html>
 	'''
+
 
 @application.route('/logs', methods=['GET'])
 def logs():
