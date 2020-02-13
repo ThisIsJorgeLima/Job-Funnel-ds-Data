@@ -58,16 +58,7 @@ class MonsterScraper(DataRetriever):
 
 		MONSTER_LOG.info('Establishing webdriver...')
 		try:
-			if self.driver is not None:
-				MONSTER_LOG.info('Closing extant webdriver...')
-				self.driver.quit()
-		except WebDriverException as e:
-			MONSTER_LOG.info(f'Extant driver already closed: {e}')
-		except AttributeError as e:
-			MONSTER_LOG.info(f'No extand driver found: {e}')
-		except Exception as e:
-			MONSTER_LOG.info(f'Exception {type(e)} while closing extant driver: {e}')
-			MONSTER_LOG.info(e, exc_info=True)
+			self.deestablish_driver()
 
 		try:
 			MONSTER_LOG.info('Creating webdriver...')
@@ -84,6 +75,28 @@ class MonsterScraper(DataRetriever):
 			self.driver = None
 
 		return self.driver
+
+	def deestablish_driver(self):
+		"""
+		Quits and deletes the driver.
+		"""
+
+		MONSTER_LOG.info('Deestablishing old driver...')
+		try:
+			MONSTER_LOG.info(f'Current driver: {self.driver}')
+			if self.driver is not None:
+				MONSTER_LOG.info('Closing extant webdriver...')
+				self.driver.quit()
+		except WebDriverException as e:
+			MONSTER_LOG.info(f'Extant driver already closed: {e}')
+		except AttributeError as e:
+			MONSTER_LOG.info(f'No extand driver found: {e}')
+		except Exception as e:
+			MONSTER_LOG.info(f'Exception {type(e)} while closing extant driver: {e}')
+			MONSTER_LOG.info(e, exc_info=True)
+
+		del self.driver
+		self.driver = None
 
 	def build_search_url(self, job_title='', job_location='', time=1):
 		params = {
@@ -445,7 +458,7 @@ class MonsterScraper(DataRetriever):
 		MONSTER_LOG.info(f'Done getting jobids, end time: {datetime.datetime.now()}')
 
 		del result_elements  # Reduce RAM usage
-		self.driver = None
+		self.deestablish_driver()
 
 		MONSTER_LOG.info(f'Getting job info, start time: {datetime.datetime.now()}')
 		for index, result_element_jobid in enumerate(result_element_jobids):
