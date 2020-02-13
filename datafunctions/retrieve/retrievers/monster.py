@@ -57,8 +57,7 @@ class MonsterScraper(DataRetriever):
 		"""
 
 		MONSTER_LOG.info('Establishing webdriver...')
-		try:
-			self.deestablish_driver()
+		self.deestablish_driver()
 
 		try:
 			MONSTER_LOG.info('Creating webdriver...')
