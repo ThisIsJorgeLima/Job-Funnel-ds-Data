@@ -142,8 +142,8 @@ def start():
 		while not check_running(SCRAPER_NAME) and tries < max_tries:
 			APP_LOG.info(f'Scraper not running, attempting to start it (try {tries + 1} of {max_tries})')
 			with open(os.devnull, 'r+b', 0) as DEVNULL:
-				p = subprocess.Popen(['nohup', sys.executable, SCRAPER_NAME],
-					stdin=DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, preexec_fn=os.setpgrp)
+				subprocess.Popen(['nohup', sys.executable, SCRAPER_NAME],
+					stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL, close_fds=True, preexec_fn=os.setpgrp)
 				time.sleep(2)
 			tries += 1
 
@@ -167,8 +167,8 @@ def start():
 				'tries': tries,
 				'message': f'Failed to start {SCRAPER_NAME} after {tries} tries.'
 			}
-			APP_LOG.info(f'run_scrapers stdout: {p.stdout.read()}')
-			APP_LOG.info(f'run_scrapers stderr: {p.stderr.read()}')
+			# APP_LOG.info(f'run_scrapers stdout: {p.stdout.read()}')
+			# APP_LOG.info(f'run_scrapers stderr: {p.stderr.read()}')
 
 		APP_LOG.info(f'result: {result}')
 
