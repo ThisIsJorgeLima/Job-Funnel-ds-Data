@@ -105,9 +105,9 @@ def kill():
 		max_tries = 5
 		while check_running(SCRAPER_NAME) and tries < max_tries:
 			APP_LOG.info(f'Scraper running, attempting to kill it (try {tries + 1} of {max_tries})')
-			r = os.popen(
+			r = os.system(
 				f'kill $(ps -Af | grep {SCRAPER_NAME_PS} | grep -v grep | grep -oP "^[a-zA-Z\s]+[0-9]+" | grep -oP "[0-9]+")'
-			).read()
+			)
 			APP_LOG.info(f'Kill call exited with code: {r}')
 			tries += 1
 			if check_running(SCRAPER_NAME):
