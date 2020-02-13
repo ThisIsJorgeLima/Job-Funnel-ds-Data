@@ -31,6 +31,8 @@ def index():
 			<br>
 			Start scrapers: <a href="/start">/start</a>
 			<br>
+			Kill scrapers: <a href="/kill">/kill</a>
+			<br>
 			Application logs: <a href="/logs?file=application.py&amp;lines=50">/logs?file=application.py</a>
 			<br>
 			Scraper logs: <a href="/logs?file=run_scrapers.py&amp;lines=100">/logs?file=run_scrapers.py</a>
