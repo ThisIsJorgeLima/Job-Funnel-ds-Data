@@ -47,7 +47,8 @@ class MonsterScraper(DataRetriever):
 		# self.html_converter.ignore_anchors = True
 		self.html_converter.body_width = 0
 		self.get_info_delay = 2  # Number of seconds to wait between requests to get info
-		self.wait = WebDriverWait(self.driver, max_wait)
+		self.max_wait = max_wait
+		self.wait = None
 
 	def establish_driver(self):
 		"""
@@ -67,6 +68,7 @@ class MonsterScraper(DataRetriever):
 			driver.set_window_size('1920', '1080')
 			MONSTER_LOG.info(f'webdriver created: {driver}')
 			self.driver = driver
+			self.wait = WebDriverWait(self.driver, max_wait)
 		except Exception as e:
 			MONSTER_LOG.info(f'Exception {type(e)} while creating new driver: {e}')
 			MONSTER_LOG.info(e, exc_info=True)
@@ -94,7 +96,9 @@ class MonsterScraper(DataRetriever):
 			MONSTER_LOG.info(e, exc_info=True)
 
 		del self.driver
+		del self.wait
 		self.driver = None
+		self.wait = None
 
 	def build_search_url(self, job_title='', job_location='', time=1):
 		params = {
