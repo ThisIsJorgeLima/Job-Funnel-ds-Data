@@ -99,18 +99,22 @@ def kill():
 	"""
 	Kills the web scrapers.
 	"""
+
+	initial_state = check_running(SCRAPER_NAME)
+	running = initial_state
 	try:
 		APP_LOG.info('/kill called')
 		tries = 0
 		max_tries = 5
-		while check_running(SCRAPER_NAME) and tries < max_tries:
+		while running and tries < max_tries:
 			APP_LOG.info(f'Scraper running, attempting to kill it (try {tries + 1} of {max_tries})')
 			r = os.system(
 				f'kill $(ps -Af | grep {SCRAPER_NAME_PS} | grep -v grep | grep -oP "^[a-zA-Z\s]+[0-9]+" | grep -oP "[0-9]+")'
 			)
 			APP_LOG.info(f'Kill call exited with code: {r}')
 			tries += 1
-			if check_running(SCRAPER_NAME):
+			running = check_running(SCRAPER_NAME)
+			if running:
 				wait_time = 2
 				APP_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
@@ -119,8 +123,13 @@ def kill():
 		APP_LOG.info(e, exc_info=True)
 
 	return f'''
-		<h4>scrapers running</h4>
-		<pre>{check_running(SCRAPER_NAME)}</pre>
+		<html><body>
+			<h4>initially running</h4>
+			<pre>{initial_state}</pre>
+			<hr />
+			<h4>scrapers running</h4>
+			<pre>{running}</pre>
+		</html></body>
 	'''
 
 
