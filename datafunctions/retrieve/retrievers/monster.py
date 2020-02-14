@@ -40,7 +40,6 @@ class MonsterScraper(DataRetriever):
 
 	def __init__(self, max_wait=5):
 		self.driver = None
-		self.establish_driver()
 		self.html_converter = html2text.HTML2Text()
 		# self.html_converter.ignore_links = True
 		# self.html_converter.ignore_images = True
@@ -384,6 +383,7 @@ class MonsterScraper(DataRetriever):
 				MONSTER_LOG.info(f'Exception {type(e2)} while rolling back, skipping: {e2}')
 
 	def get_jobs(self, db_conn, job_title='', job_location=''):
+		self.establish_driver()
 		url = self.build_search_url(job_title=job_title, job_location=job_location)
 		max_tries = 3
 		tries = 0
