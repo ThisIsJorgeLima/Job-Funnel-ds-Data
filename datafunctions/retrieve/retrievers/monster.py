@@ -68,7 +68,7 @@ class MonsterScraper(DataRetriever):
 			driver.set_window_size('1920', '1080')
 			MONSTER_LOG.info(f'webdriver created: {driver}')
 			self.driver = driver
-			self.wait = WebDriverWait(self.driver, max_wait)
+			self.wait = WebDriverWait(self.driver, self.max_wait)
 		except Exception as e:
 			MONSTER_LOG.info(f'Exception {type(e)} while creating new driver: {e}')
 			MONSTER_LOG.info(e, exc_info=True)
