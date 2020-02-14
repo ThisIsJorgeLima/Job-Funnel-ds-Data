@@ -153,7 +153,9 @@ def start():
 			with open(os.devnull, 'r+b', 0) as DEVNULL:
 				subprocess.Popen(['nohup', sys.executable, SCRAPER_NAME],
 					stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL, close_fds=True, preexec_fn=os.setpgrp)
-				time.sleep(2)
+			wait_time = 2
+			APP_LOG.info(f'Waiting {wait_time} seconds...')
+			time.sleep(wait_time)
 			tries += 1
 
 		if check_running(SCRAPER_NAME):
