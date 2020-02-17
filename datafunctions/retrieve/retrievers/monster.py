@@ -206,7 +206,6 @@ class MonsterScraper(DataRetriever):
 			FROM locations
 			WHERE city = %(city)s
 				AND state_province = %(state_province)s
-				AND country = %(country)s
 			LIMIT 1;
 		"""
 
@@ -256,7 +255,6 @@ class MonsterScraper(DataRetriever):
 				{
 					'city': result['city'],
 					'state_province': result['state_province'],
-					'country': result['country'],
 				}
 			)
 			qr = curr.fetchone()
