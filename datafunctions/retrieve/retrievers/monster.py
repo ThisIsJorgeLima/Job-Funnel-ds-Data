@@ -70,8 +70,8 @@ class MonsterScraper(DataRetriever):
 			self.driver = driver
 			self.wait = WebDriverWait(self.driver, self.max_wait)
 		except Exception as e:
-			MONSTER_LOG.info(f'Exception {type(e)} while creating new driver: {e}')
-			MONSTER_LOG.info(e, exc_info=True)
+			MONSTER_LOG.warn(f'Exception {type(e)} while creating new driver: {e}')
+			MONSTER_LOG.warn(e, exc_info=True)
 			self.driver = None
 
 		return self.driver
@@ -92,8 +92,8 @@ class MonsterScraper(DataRetriever):
 		except AttributeError as e:
 			MONSTER_LOG.info(f'No extand driver found: {e}')
 		except Exception as e:
-			MONSTER_LOG.info(f'Exception {type(e)} while closing extant driver: {e}')
-			MONSTER_LOG.info(e, exc_info=True)
+			MONSTER_LOG.warn(f'Exception {type(e)} while closing extant driver: {e}')
+			MONSTER_LOG.warn(e, exc_info=True)
 
 		del self.driver
 		del self.wait
@@ -411,20 +411,20 @@ class MonsterScraper(DataRetriever):
 			MONSTER_LOG.info('Added result to database.')
 
 		except Exception as e:
-			MONSTER_LOG.info(f'Exception {type(e)} while executing transaction: {e}')
-			MONSTER_LOG.info(e, exc_info=True)
+			MONSTER_LOG.warn(f'Exception {type(e)} while executing transaction: {e}')
+			MONSTER_LOG.warn(e, exc_info=True)
 
 			MONSTER_LOG.info('Attempting to close cursor...')
 			try:
 				curr.close()
 			except Exception as e2:
-				MONSTER_LOG.info(f'Exception {type(e2)} while closing cursor, skipping: {e2}')
+				MONSTER_LOG.warn(f'Exception {type(e2)} while closing cursor, skipping: {e2}')
 
 			MONSTER_LOG.info('Attempting to rollback transaction...')
 			try:
 				db_conn.rollback()
 			except Exception as e2:
-				MONSTER_LOG.info(f'Exception {type(e2)} while rolling back, skipping: {e2}')
+				MONSTER_LOG.warn(f'Exception {type(e2)} while rolling back, skipping: {e2}')
 
 	def get_jobs(self, db_conn, job_title='', job_location=''):
 		self.establish_driver()
@@ -439,8 +439,8 @@ class MonsterScraper(DataRetriever):
 				break
 			except Exception as e:
 				tries += 1
-				MONSTER_LOG.info(f'Exception {type(e)} while getting search page: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(f'Exception {type(e)} while getting search page: {e}')
+				MONSTER_LOG.warn(e, exc_info=True)
 				MONSTER_LOG.info('Reestablishing driver...')
 				self.establish_driver()
 				time.sleep(wait_time)
@@ -477,8 +477,8 @@ class MonsterScraper(DataRetriever):
 				time.sleep(wait_time)
 			except Exception as e:
 				tries += 1
-				MONSTER_LOG.info(f'Exception {type(e)} while loading more jobs: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(f'Exception {type(e)} while loading more jobs: {e}')
+				MONSTER_LOG.warn(e, exc_info=True)
 				time.sleep(wait_time)
 
 		MONSTER_LOG.info(f'Getting elements: {content_xpath}')
@@ -496,8 +496,8 @@ class MonsterScraper(DataRetriever):
 				result_element_jobids.append(result_element.get_attribute('data-jobid'))
 				result_elements[index] = None  # More RAM reduction
 			except Exception as e:
-				MONSTER_LOG.info(f'Exception {type(e)} while getting jobid for element {index + 1}: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(f'Exception {type(e)} while getting jobid for element {index + 1}: {e}')
+				MONSTER_LOG.warn(e, exc_info=True)
 		MONSTER_LOG.info(f'Done getting jobids, end time: {datetime.datetime.now()}')
 
 		del result_elements  # Reduce RAM usage
@@ -512,8 +512,8 @@ class MonsterScraper(DataRetriever):
 				result = self.get_details_json(result_element_jobid)
 				self.add_to_db(db_conn, result)
 			except Exception as e:
-				MONSTER_LOG.info(f'Exception {type(e)} while getting info for element {index + 1}: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(f'Exception {type(e)} while getting info for element {index + 1}: {e}')
+				MONSTER_LOG.warn(e, exc_info=True)
 		MONSTER_LOG.info(f'Done getting job info, end time: {datetime.datetime.now()}.')
 
 	def get_details_json(self, result_element_jobid, max_tries=5):
@@ -525,8 +525,8 @@ class MonsterScraper(DataRetriever):
 				data = requests.get(details_url).json()
 				break
 			except Exception as e:
-				MONSTER_LOG.info(f'Exception getting info for jobid: {result_element_jobid}: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(f'Exception getting info for jobid: {result_element_jobid}: {e}')
+				MONSTER_LOG.warn(e, exc_info=True)
 				wait_time = 3
 				MONSTER_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
@@ -597,7 +597,7 @@ class MonsterScraper(DataRetriever):
 				self.get_jobs(db_connection, job_title=job)
 			except Exception as e:
 				MONSTER_LOG.warning(f'Failure while getting jobs for title {job}: {e}')
-				MONSTER_LOG.info(e, exc_info=True)
+				MONSTER_LOG.warn(e, exc_info=True)
 
 	def __enter__(self):
 		return (self)

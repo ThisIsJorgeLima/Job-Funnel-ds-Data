@@ -119,8 +119,8 @@ def kill():
 				APP_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
 	except Exception as e:
-		APP_LOG.info(f'Exception while killing scrapers: {e}')
-		APP_LOG.info(e, exc_info=True)
+		APP_LOG.warn(f'Exception while killing scrapers: {e}')
+		APP_LOG.warn(e, exc_info=True)
 
 	return f'''
 		<html><body>
@@ -189,8 +189,8 @@ def start():
 			'tries': tries,
 			'message': f'Aborting after {type(e)} exception on try {tries}: {e}'
 		}
-		APP_LOG.info(f'result: {result}')
-		APP_LOG.info(e, exc_info=True)
+		APP_LOG.warn(f'result: {result}')
+		APP_LOG.warn(e, exc_info=True)
 
 	return jsonify(result)
 
