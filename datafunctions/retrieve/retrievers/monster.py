@@ -280,7 +280,7 @@ class MonsterScraper(DataRetriever):
 				company_id = qr[0]
 			else:
 				# Otherwise, insert the company and get the id
-				MONSTER_LOG.info(f'Company {result["company_name"]} not complete DB, populating...')
+				MONSTER_LOG.info(f'Company {result["company_name"]} not complete in DB, populating...')
 				curr.execute(
 					companies_update_query,
 					{
