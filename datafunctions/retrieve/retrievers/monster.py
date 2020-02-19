@@ -546,6 +546,19 @@ class MonsterScraper(DataRetriever):
 			)
 		)
 
+		MONSTER_LOG.info('Converting company description to text...')
+		company_description = re.sub(
+			r'\n\n(\s+\n)+',
+			'\n\n',
+			re.sub(
+				r'\n+',
+				'\n\n',
+				self.html_converter.handle(
+					data['companyInfo'].get('description', '').replace('\n', '<br />')
+				)
+			)
+		)
+
 		MONSTER_LOG.info(f'Getting info...')
 		title = data['companyInfo']['companyHeader'].replace(f' at {data["companyInfo"].get("name", "")}', '').strip()
 		if data['isCustomApplyOnlineJob']:
@@ -556,7 +569,7 @@ class MonsterScraper(DataRetriever):
 			'description': description_text.strip(),
 			'company_name': data['companyInfo'].get('name', ''),
 			'company_logo_url': data['companyInfo'].get('logo', {}).get('src', ''),
-			'company_description': data['companyInfo'].get('description', ''),
+			'company_description': company_description.strip(),
 			'title': title,
 			'inner_link': link,
 			'country': data.get('jobLocationCountry', ''),
