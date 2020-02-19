@@ -196,6 +196,22 @@ class MonsterScraper(DataRetriever):
 			RETURNING id;
 		"""
 
+		company_populated_query = """
+			SELECT id
+			FROM companies
+			WHERE name = %(name)s
+				AND description IS NOT NULL
+			LIMIT 1;
+		"""
+
+		companies_update_query = """
+			UPDATE companies
+			SET logo_url = %(logo_url)s,
+				description = %(description)s
+			WHERE id = %(company_id)s
+			RETURNING id;
+		"""
+
 		job_companies_query = """
 			INSERT INTO job_companies(job_id, company_id)
 			VALUES (%(job_id)s, %(company_id)s);
@@ -245,6 +261,30 @@ class MonsterScraper(DataRetriever):
 					companies_query,
 					{
 						'name': result['company_name'],
+						'description': result['company_description'],
+						'logo_url': result['company_logo_url'],
+					}
+				)
+				company_id = curr.fetchone()[0]
+
+			# Get the company id if it is not fully populated
+			curr.execute(
+				company_populated_query,
+				{
+					'name': result['company_name'],
+				}
+			)
+			qr = curr.fetchone()
+			if qr is not None:
+				MONSTER_LOG.info(f'Company {result["company_name"]} fully-populated in DB.')
+				company_id = qr[0]
+			else:
+				# Otherwise, insert the company and get the id
+				MONSTER_LOG.info(f'Company {result["company_name"]} not complete DB, populating...')
+				curr.execute(
+					companies_update_query,
+					{
+						'company_id': company_id,
 						'description': result['company_description'],
 						'logo_url': result['company_logo_url'],
 					}
