@@ -191,8 +191,8 @@ class MonsterScraper(DataRetriever):
 		"""
 
 		companies_query = """
-			INSERT INTO companies(name)
-			VALUES (%(name)s)
+			INSERT INTO companies(name, description, logo_url)
+			VALUES (%(name)s, %(description)s, %(logo_url)s)
 			RETURNING id;
 		"""
 
@@ -245,6 +245,8 @@ class MonsterScraper(DataRetriever):
 					companies_query,
 					{
 						'name': result['company_name'],
+						'description': result['company_description'],
+						'logo_url': result['company_logo_url'],
 					}
 				)
 				company_id = curr.fetchone()[0]
@@ -513,6 +515,8 @@ class MonsterScraper(DataRetriever):
 		result = {
 			'description': description_text.strip(),
 			'company_name': data['companyInfo'].get('name', ''),
+			'company_logo_url': data['companyInfo'].get('logo', {}).get('src', ''),
+			'company_description': data['companyInfo'].get('description', ''),
 			'title': title,
 			'inner_link': link,
 			'country': data.get('jobLocationCountry', ''),
