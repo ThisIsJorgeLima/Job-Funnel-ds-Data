@@ -16,6 +16,8 @@ flask = "*"
 html2text = "*"
 psycopg2 = "*"
 pyvirtualdisplay = "*"
+gensim = "*"
+scikit-learn = "*"
 
 [requires]
 python_version = "3.6"
