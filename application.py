@@ -223,7 +223,7 @@ def kill_models():
 			tries += 1
 			running = check_running(MODEL_NAME)
 			if running:
-				wait_time = 2
+				wait_time = 0
 				APP_LOG.info(f'Waiting {wait_time} seconds...')
 				time.sleep(wait_time)
 	except Exception as e:
@@ -259,7 +259,7 @@ def start_models():
 		while not check_running(MODEL_NAME) and tries < max_tries:
 			APP_LOG.info(f'Models not running, attempting to start it (try {tries + 1} of {max_tries})')
 			start_and_disown(MODEL_NAME)
-			wait_time = 2
+			wait_time = 0
 			APP_LOG.info(f'Waiting {wait_time} seconds...')
 			time.sleep(wait_time)
 			tries += 1
