@@ -64,7 +64,7 @@ class Populator:
 		if len(model_classes):
 			for model_class in model_classes:
 				POPULATE_LOG.info(f'Instantiating model class: {model_class}')
-				with model_class() as m:
+				with model_class(db_conn) as m:
 					POPULATE_LOG.info(f'Calling populate_database on instance: {m}')
 					m.populate_database(db_conn)
 					POPULATE_LOG.info(f'Done populate_database on instance: {m}')
