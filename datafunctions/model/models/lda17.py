@@ -2,6 +2,7 @@ import logging
 import gensim
 
 from os.path import dirname, join
+from typing import Dict, List
 
 from datafunctions.model.modelfunctions import TopicModel
 
@@ -109,7 +110,17 @@ class LDA17Model(TopicModel):
 			LDA_LOG.warn(e, exc_info=True)
 			curr.close()
 
-	def get_topic_scores(self, job_descriptions: dict):
+	def get_topic_scores(self, job_descriptions: Dict[int: str]) -> Dict[int: List[float]]:
+		"""
+		Gets the topic scores for one or more job descriptions
+
+		Args:
+			job_descriptions (dict): A dict of job_id: job_description
+
+		Returns:
+			dict: A dict of job_id: topic_scores (List[float])
+		"""
+
 		LDA_LOG.info(f'Getting lda17 topic scores for {len(job_descriptions)} descriptions...')
 		job_ids, descriptions = zip(*job_descriptions.items())
 		processed_descriptions = self.sentence_to_words(descriptions)
