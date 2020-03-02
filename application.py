@@ -316,13 +316,13 @@ def models_lda17_nn():
 @application.route('/models/lda17-m')
 def models_lda17_m():
 	return send_file(LDA17_M_PATH)
-@application.route('/models/lda17-me')
+@application.route('/models/lda17-m.expElogbeta.npy')
 def models_lda17_me():
 	return send_file(LDA17_ME_PATH)
-@application.route('/models/lda17-mi')
+@application.route('/models/lda17-m.id2word')
 def models_lda17_mi():
 	return send_file(LDA17_MI_PATH)
-@application.route('/models/lda17-ms')
+@application.route('/models/lda17-m.state')
 def models_lda17_ms():
 	return send_file(LDA17_MS_PATH)
 @application.route('/models/lda17-id')
