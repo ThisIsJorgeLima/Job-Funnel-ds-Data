@@ -314,19 +314,19 @@ def models_lda17_nn():
 	return send_file(LDA17_NN_PATH)
 
 @application.route('/models/lda17-m')
-def models_lda17_nn():
+def models_lda17_m():
 	return send_file(LDA17_M_PATH)
 @application.route('/models/lda17-me')
-def models_lda17_nn():
+def models_lda17_me():
 	return send_file(LDA17_ME_PATH)
 @application.route('/models/lda17-mi')
-def models_lda17_nn():
+def models_lda17_mi():
 	return send_file(LDA17_MI_PATH)
 @application.route('/models/lda17-ms')
-def models_lda17_nn():
+def models_lda17_ms():
 	return send_file(LDA17_MS_PATH)
 @application.route('/models/lda17-id')
-def models_lda17_nn():
+def models_lda17_id():
 	return send_file(LDA17_ID_PATH)
 
 
