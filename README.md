@@ -1,94 +1,93 @@
-🚫 Note: All lines that start with 🚫 are instructions and should be deleted before this is posted to your portfolio. This is intended to be a guideline. Feel free to add your own flare to it.
+# QuickHire
 
-🚫 The numbers 1️⃣ through 5️⃣ next to each item represent the week that part of the docs needs to be comepleted by.  Make sure to delete the numbers by the end of Labs.
+You can find the project at [QuickHire.dev](https://quickhire.dev)
 
-🚫 Each student has a required minimum number of meaningful PRs each week per the rubric.  Contributing to docs does NOT count as a PR to meet your weekly requirements.
+## Contributors
 
-# 1️⃣ Title of project goes here
-
-You can find the project at [🚫URL NAME GOES HERE](🚫copy and paste URL here).
-
-## 5️⃣ Contributors
-
-🚫Add contributor info below, make sure add images and edit the social links for each member. Add to or delete these place-holders as needed
-
-|                                       [Student 1](https://github.com/)                                        |                                       [Student 2](https://github.com/)                                        |                                       [Student 3](https://github.com/)                                        |                                       [Student 4](https://github.com/)                                        |                                       [Student 5](https://github.com/)                                        |
-| :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
-|                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-male.png" width = "200" />](https://github.com/)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-female.png" width = "200" />](https://github.com/)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-male.png" width = "200" />](https://github.com/)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-female.png" width = "200" />](https://github.com/)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-male.png" width = "200" />](https://github.com/)                       |
-|                 [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/)                 |            [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/honda0306)             |           [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Mister-Corn)            |          [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/NandoTheessen)           |            [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/wvandolah)             |
-| [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) |
-
-
-
-🚫 5️⃣ Optional examples of using images with links for your tech stack, make sure to change these to fit your project
-
-![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)
-![Typescript](https://img.shields.io/npm/types/typescript.svg?style=flat)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b5c4db1c-b10d-42c3-b157-3746edd9e81d/deploy-status)](netlify link goes in these parenthesis)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-
-🚫 more info on using badges [here](https://github.com/badges/shields)
+|[Pierre Nelson](https://github.com/alxanderpierre)                                                                                            |[Logan Keith](https://github.com/lrizika)                                                                                                    |[Baisal Ergeshev](https://github.com/Baisal89)|                                                                                                                                                                                                 
+| :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
+|                      [<img src="https://avatars0.githubusercontent.com/u/51343473?s=400&v=4" width = "200" />](https://github.com/alxanderpierre)                       |                      [<img src="https://ca.slack-edge.com/T4JUEB3ME-UMHPCN3NW-ab422991fa22-512" width = "200" />](https://github.com/lrizika)                       |                      [<img src="https://ca.slack-edge.com/T4JUEB3ME-UJRSD5X6H-c2998ebc2ac3-512" width = "200" />](https://github.com/Baisal89)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-female.png" width = "200" />](https://github.com/)                       |                      [<img src="https://www.dalesjewelers.com/wp-content/uploads/2018/10/placeholder-silhouette-male.png" width = "200" />](https://github.com/)                       |
+|                 [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/alxanderpierre)                 |            [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/lrizika)             |           [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/Baisal89)            |                     |                        |
+| [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/pierre-nelson-26838a148/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/logan-k-3802b0195/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/baisal-ergeshev-52b3b342/) | 
+<br>
+<br>
 
 ## Project Overview
 
+https://github.com/Lambda-School-Labs/Job-Funnel-ds-API/tree/master/docs
 
-1️⃣ [Trello Board](🚫add link to trello board here)
 
-1️⃣ [Product Canvas](🚫add link to product canvas here)
+[Trello Board](https://trello.com/b/dorhqi4o/job-funnel)
 
-🚫 Replace lorem ipsum with a description of your project
+[Product Canvas](https://www.notion.so/Job-Funnel-20ba287fac1c403c92a8ebb8766821a0)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+[UX Design files](https://www.figma.com/file/zljtkyosMyzAa1UMpcAIEd/Quick-Hire-Judy?node-id=263%3A2)
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+[Backend Documentation](https://github.com/Lambda-School-Labs/Job-Funnel-be)
 
-🚫  delete if front end is not applicable to your project
+[Data Science Repo](https://github.com/Lambda-School-Labs/Job-Funnel-ds-API)
 
-1️⃣ [Deployed Front End](🚫add link to deployed app here)
+## Quickhire Description
+
+Quickhire is a web application that streamlines the job search process by allowing users to search, store, and apply for jobs -- all in one place. It allows you, as a user, to login, search for jobs that you're interested in, save them, and apply to them. 
+
+Our mission is to simplify the job-search and hiring process by bringing both to the same platform. Future releases will include a recruiter side of the app, which will allow for both kinds of users to interact with one another --- whether it be through initial contact, through an interview, or through any part of the job search process. 
+
 
 ### Tech Stack
 
-🚫 List all of the languages, frameworks, services, etc used here.
+List all of the languages, frameworks, services: Python, Selenium, PostgresSQL, AWS Elastic Beanstalk, AWS Lambda function, AWS RDS. 
 
-### 2️⃣ Predictions
+## Project Overview
 
-🚫 Describe your models here
+Finding jobs you like is hard. When you find many jobs you like, it’s hard to organize and prioritize them. It’s also hard to know your probability of getting a job based on it’s description.
+Help students get the best jobs matched to them using data science. And give them an awesome interface to store and and manage the jobs they want to pursue.
 
-### 2️⃣ Explanatory Variables
+### Dataset
 
--   Explanatory Variable 1
--   Explanatory Variable 2
--   Explanatory Variable 3
--   Explanatory Variable 4
--   Explanatory Variable 5
+We use the first 10,000 jobs listing that we scraped to train our model.
+
+### Models
+
+Created a topic model to discover the topics that occured in our collection of documents to filter them for the grad. The type of topic model that we use was a LDA model. we use the gensim lib. Here is a link to the documentation https://radimrehurek.com/gensim/auto_examples/tutorials/run_lda.html
+
+# from gensim.utils import simple_preprocess
+
+We first had to tokenize the sentences into a list of words.
+
+# Bi-grams and Tri-grams
+
+We then wanted to find the world that appeared the most times together. Such as Machine Learning/ Data Science etc.
+
+# Lemmatization and STOPWORDS
+
+We create a stopwords function to get rid of words that we thought we not useful and also implemented LEMMATIZATION to only allow for nouns adjs verbs and advs. This may be something that you may want to change later.
+
+# Dictionary
+
+Next we create a Dictionary and an id2word by importing import gensim.corpora as corpora. And also use a filter no_below to only allow words that appeared in at least 5 documents into our model. no_above for the purpose of making sure that to only include words that appeared in 90% of the corpus.
+
+# LDA Model.
+
+Once we created the model we then tuned the hyper parameters accordingly. However we checked to see how good our model was by using a Coherence Score.
+
+# Coherence Score.
+
+The best we got was a little above .60. The higher you go the more you will run into over fitting.
+However in the notebook the large commented out protion is us creating a function that list out the best possible hyper parameter combination and gives them to you back in a csv file to see whats the best hyper parameters to use for the LDA model. (this took a very long time to run)
+
+# pyLDAvis
+
+We used this vis to see what overlap we had to see if we could better tune the model
+
+# Nearest Neighbor
+
+We then implantment another model Nearest Neighbors for the purposes of outputing the most related jobs to the grad
 
 ### Data Sources
-🚫  Add to or delete souce links as needed for your project
 
+https://github.com/Lambda-School-Labs/Job-Funnel-ds-API/blob/master/docs/api/reference.md
 
--   [Source 1] (🚫add link to python notebook here)
--   [Source 2] (🚫add link to python notebook here)
--   [Source 3] (🚫add link to python notebook here)
--   [Source 4] (🚫add link to python notebook here)
--   [Source 5] (🚫add link to python notebook here)
-
-### Python Notebooks
-
-🚫  Add to or delete python notebook links as needed for your project
-
-[Python Notebook 1](🚫add link to python notebook here)
-
-[Python Notebook 2](🚫add link to python notebook here)
-
-[Python Notebook 3](🚫add link to python notebook here)
-
-### 3️⃣ How to connect to the web API
-
-🚫 List directions on how to connect to the API here
-
-### 3️⃣ How to connect to the data API
-
-🚫 List directions on how to connect to the API here
 
 ## Contributing
 
@@ -128,7 +127,7 @@ These contribution guidelines have been adapted from [this good-Contributing.md-
 
 ## Documentation
 
-See [Backend Documentation](_link to your backend readme here_) for details on the backend of our project.
+See [Backend Documentation](https://github.com/Lambda-School-Labs/Job-Funnel-be) for details on the backend of our project.
 
-See [Front End Documentation](_link to your front end readme here_) for details on the front end of our project.
+
 
